@@ -1,4 +1,4 @@
-import { Globe, Mail, Twitter, Github } from 'lucide-react';
+import { Globe, Mail, Share2, Code } from 'lucide-react';
 
 export const Footer = () => {
   return (
@@ -22,8 +22,8 @@ export const Footer = () => {
             </p>
             <div className="flex items-center gap-6">
                {[
-                 { icon: Twitter, href: 'https://x.com/Soulpureaux' },
-                 { icon: Github, href: 'https://github.com/Juniorj87/walblob' },
+                 { icon: Share2, href: 'https://x.com/Soulpureaux' },
+                 { icon: Code, href: 'https://github.com/Juniorj87/walblob' },
                  { icon: Mail, href: '#' }
                ].map((social, i) => (
                  <a key={i} href={social.href} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-text-dim hover:text-white hover:bg-white/10 hover:border-white/10 transition-all duration-300">

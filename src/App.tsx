@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@mysten/dapp-kit/dist/index.css';
 import Dashboard from './components/sections/Dashboard';
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { NetworkProvider } from './context/NetworkContext';
 
 // Lazy load secondary sections for performance (Priority 6)
