@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Lock, UploadCloud,
-  Loader2, ShieldCheck,
+  Loader2, ShieldCheck, Shield,
   FileText,
   Download, QrCode as QrIcon, Trash2, Plus, Info, ArrowRight
 } from 'lucide-react';

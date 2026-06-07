@@ -3,6 +3,12 @@ import { Lock, Database, Share2, ArrowLeft, Globe, ShieldCheck, CheckCircle2 } f
 import { PremiumBackground } from '../animations/PremiumBackground';
 import { Header } from '../ui/Header';
 import { Footer } from '../ui/Footer';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export default function Docs() {
   return (
