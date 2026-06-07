@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Search, Database, Globe, Clock, 
+  Search, File, Globe, Clock, 
   ExternalLink, Loader2, ShieldAlert,
   AlertCircle, Info
 } from 'lucide-react';
@@ -118,7 +118,7 @@ export const Explorer = () => {
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-white/[0.02] rounded-3xl border border-white/5 p-6 space-y-4">
                          <div className="flex items-center gap-3">
-                            <Database className="w-4 h-4 text-white/20" />
+                            <File className="w-4 h-4 text-white/20" />
                             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Status</span>
                          </div>
                          <div className="flex items-center gap-3">

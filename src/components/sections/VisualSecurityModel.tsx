@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Lock, Database, Key, ShieldCheck, ArrowDown, Network, Shield } from 'lucide-react';
+import { Lock, File, Key, ShieldCheck, ArrowDown, Network, Shield } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -66,7 +66,7 @@ export const VisualSecurityModel = () => {
       {/* Visual Protocol Flow */}
       <div className="relative p-10 md:p-16 rounded-[56px] bg-[#030712]/60 glass-v3 border border-white/5 flex flex-col items-center gap-10">
         {[
-          { icon: Database, label: "RAW FILE", color: "text-white" },
+          { icon: File, label: "RAW FILE", color: "text-white" },
           { icon: Lock, label: "AES-256 SEAL", color: "text-primary", glow: true },
           { icon: Network, label: "ENCRYPTED BLOB", color: "text-accent" },
           { icon: ShieldCheck, label: "WALRUS NETWORK", color: "text-emerald-400" }

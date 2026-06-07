@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { FileText, Image as ImageIcon, Video, Copy, Database } from 'lucide-react';
+import { FileText, Image as ImageIcon, Video, Copy } from 'lucide-react';
 
 const MOCK_FILES = [
   { name: 'Whitepaper.pdf', size: '2.4 MB', id: 'blob_8f2a...3c1e', icon: FileText },
@@ -18,9 +18,11 @@ export const ShowcaseCard = () => {
       {/* Header */}
       <div className="p-8 border-b border-white/5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-            <Database className="w-6 h-6 text-white" />
-          </div>
+          <img 
+            src="/walblob-logo.png" 
+            alt="WalBlob Logo" 
+            className="h-8 w-auto object-contain" 
+          />
           <span className="text-xl font-display font-bold tracking-tight">WalBlob</span>
         </div>
         <div className="flex gap-1.5">

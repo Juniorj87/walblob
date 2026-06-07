@@ -15,8 +15,21 @@ const Retrieve = lazy(() => import('./components/sections/Retrieve'));
 const LoadingFallback = () => (
   <div className="min-h-screen bg-[#020617] flex items-center justify-center">
     <div className="relative">
-      <Loader2 className="w-12 h-12 text-[#4F7CFF] animate-spin" />
-      <div className="absolute inset-0 bg-[#4F7CFF]/20 blur-2xl rounded-full" />
+      <motion.img 
+        src="/walblob-logo.png"
+        alt="WalBlob Loading"
+        className="w-20 h-20 object-contain relative z-10"
+        animate={{ 
+          opacity: [0.4, 1, 0.4],
+          scale: [0.95, 1, 0.95]
+        }}
+        transition={{ 
+          duration: 2,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
+      <div className="absolute inset-0 bg-[#4F7CFF]/20 blur-3xl rounded-full" />
     </div>
   </div>
 );

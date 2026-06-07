@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ShieldCheck, Zap, Globe, HardDrive, Clock, BarChart3 } from 'lucide-react';
+import { ShieldCheck, Zap, Globe, Layers, Clock, BarChart3 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -17,7 +17,7 @@ interface AnalyticsProps {
 
 export const UploadAnalyticsCard = ({ size, time, speed, network, className }: AnalyticsProps) => {
   const stats = [
-    { label: 'Payload Size', value: size, icon: HardDrive, color: 'text-white' },
+    { label: 'Payload Size', value: size, icon: Layers, color: 'text-white' },
     { label: 'Transmission', value: time, icon: Clock, color: 'text-primary' },
     { label: 'Avg Throughput', value: speed, icon: Zap, color: 'text-accent' },
     { label: 'Network Layer', value: network, icon: Globe, color: 'text-emerald-400' },

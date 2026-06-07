@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Lock, Database, Key, ShieldCheck } from 'lucide-react';
+import { Lock, Layers, Key, ShieldCheck } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -18,7 +18,7 @@ const SECURITY_POINTS = [
   {
     title: "Decentralized Sharding",
     desc: "Data is fragmented and distributed across the global Walrus network for 100% censorship resistance.",
-    icon: Database,
+    icon: Layers,
     color: "text-secondary",
     bg: "bg-secondary/10"
   },

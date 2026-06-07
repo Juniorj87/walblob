@@ -1,4 +1,4 @@
-import { Server, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Activity, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PremiumBackground } from '../animations/PremiumBackground';
 import { Header } from '../ui/Header';
@@ -49,7 +49,7 @@ export default function Status() {
               >
                 <div className="flex items-center gap-6">
                   <div className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-text-dim group-hover:text-primary group-hover:border-primary/20 transition-all">
-                    <Server className="w-6 h-6" />
+                    <Activity className="w-6 h-6" />
                   </div>
                   <div>
                     <h4 className="text-lg font-bold text-white tracking-tight">{node.name}</h4>

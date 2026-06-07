@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { 
   FileText, Image, Video, Music, 
   Archive, File, FileDigit, Calendar,
-  HardDrive
+  Package
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -77,7 +77,7 @@ export const FilePreview = ({ file, className }: FilePreviewProps) => {
             {file.name}
           </h3>
           <div className="flex items-center gap-6 text-[11px] font-bold uppercase tracking-widest text-text-dim">
-            <span className="flex items-center gap-2"><HardDrive className="w-3.5 h-3.5 opacity-50" /> {formatSize(file.size)}</span>
+            <span className="flex items-center gap-2"><Package className="w-3.5 h-3.5 opacity-50" /> {formatSize(file.size)}</span>
             <span className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 opacity-50" /> {formatDate(file.lastModified)}</span>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Lock, Database, Share2, ArrowLeft, Globe, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Lock, File, Share2, ArrowLeft, Globe, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { PremiumBackground } from '../animations/PremiumBackground';
 import { Header } from '../ui/Header';
 import { Footer } from '../ui/Footer';
@@ -99,13 +99,13 @@ export default function Docs() {
               <div className="order-2 md:order-1 relative group">
                  <div className="absolute inset-0 bg-secondary/10 blur-[100px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
                  <div className="aspect-square bg-white/[0.02] border border-white/5 rounded-[48px] flex items-center justify-center p-20 relative z-10 transition-all duration-700 group-hover:scale-105 group-hover:bg-white/[0.04]">
-                    <Database className="w-full h-full text-secondary/40" />
-                 </div>
-              </div>
-              <div className="order-1 md:order-2 space-y-8">
-                <div className="w-14 h-14 bg-secondary/10 rounded-2xl flex items-center justify-center border border-secondary/20">
-                  <Database className="text-secondary w-7 h-7" />
-                </div>
+                    <File className="w-full h-full text-secondary/40" />
+                    </div>
+                    </div>
+                    <div className="space-y-8">
+                    <div className="w-14 h-14 bg-secondary/10 rounded-2xl flex items-center justify-center border border-secondary/20">
+                    <File className="text-secondary w-7 h-7" />
+                    </div>
                 <h3 className="text-3xl font-display font-bold text-white tracking-tight">2. Redundant Sharding</h3>
                 <p className="text-text-muted text-lg leading-relaxed font-medium">
                   Walrus fragments your encrypted blob into redundant shards. 

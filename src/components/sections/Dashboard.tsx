@@ -4,7 +4,6 @@ import {
   Loader2, ShieldCheck, Shield,
   FileText,
   Download, QrCode as QrIcon, Trash2, Plus, Info, ArrowRight,
-  Database,
   Zap,
   Image as ImageIcon,
   Video,
@@ -77,9 +76,11 @@ const ShowcaseCardMock = () => {
     >
       <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-xl">
-            <Database className="w-5 h-5 text-black" />
-          </div>
+          <img 
+            src="/walblob-logo.png" 
+            alt="WalBlob Logo" 
+            className="h-8 w-auto object-contain" 
+          />
           <span className="text-xl font-display font-bold tracking-tight text-white">WalBlob</span>
         </div>
         <div className="flex gap-2">

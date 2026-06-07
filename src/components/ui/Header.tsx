@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { ConnectButton } from '@mysten/dapp-kit';
-import { Database } from 'lucide-react';
 import { useNetwork } from '../../context/NetworkContext';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -30,9 +29,11 @@ export const Header = () => {
         <div className="glass-v3 inner-glow rounded-full px-6 md:px-8 py-3 flex items-center justify-between backdrop-blur-3xl border-white/[0.05]">
           {/* Logo */}
           <a href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-2xl group-hover:scale-105 transition-transform duration-500">
-              <Database className="w-6 h-6 text-black" />
-            </div>
+            <img 
+              src="/walblob-logo.png" 
+              alt="WalBlob Logo" 
+              className="h-8 md:h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-500" 
+            />
             <span className="text-xl font-display font-bold tracking-tight text-white">WalBlob</span>
           </a>
 

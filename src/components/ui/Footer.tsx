@@ -1,4 +1,4 @@
-import { Database, Globe, Mail, ExternalLink } from 'lucide-react';
+import { Globe, Mail, ExternalLink } from 'lucide-react';
 
 export const Footer = () => {
   return (
@@ -7,17 +7,18 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 md:gap-24 mb-32 text-left">
           <div className="col-span-1 md:col-span-2 space-y-12">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-2xl">
-                <Database className="w-7 h-7 text-black" />
-              </div>
+              <img 
+                src="/walblob-logo.png" 
+                alt="WalBlob Logo" 
+                className="h-12 w-auto object-contain" 
+              />
               <div className="flex flex-col">
                 <span className="text-2xl font-display font-bold tracking-tight text-white">WalBlob</span>
                 <span className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mt-1">Sovereign Data Storage</span>
               </div>
             </div>
             <p className="text-text-dim text-lg font-medium max-w-sm leading-relaxed opacity-70">
-              Defining the next standard of decentralized privacy. 
-              Zero-knowledge architecture powered by the Walrus protocol.
+              Zero-Knowledge encrypted storage powered by Walrus.
             </p>
             <div className="flex items-center gap-6">
                {[
