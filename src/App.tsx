@@ -13,10 +13,10 @@ const Status = lazy(() => import('./components/sections/Status'));
 const Retrieve = lazy(() => import('./components/sections/Retrieve'));
 
 const LoadingFallback = () => (
-  <div className="min-h-screen bg-[#050816] flex items-center justify-center">
+  <div className="min-h-screen bg-[#020617] flex items-center justify-center">
     <div className="relative">
-      <Loader2 className="w-12 h-12 text-primary animate-spin" />
-      <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full" />
+      <Loader2 className="w-12 h-12 text-[#4F7CFF] animate-spin" />
+      <div className="absolute inset-0 bg-[#4F7CFF]/20 blur-2xl rounded-full" />
     </div>
   </div>
 );
@@ -69,7 +69,7 @@ function App() {
 			<SuiClientProvider networks={networkConfig} defaultNetwork="mainnet">
 				<WalletProvider autoConnect>
 					<NetworkProvider>
-						<div className="bg-[#050816] min-h-screen text-white font-sans selection:bg-cyan-500/30">
+						<div className="bg-[#020617] min-h-screen text-white font-sans selection:bg-[#4F7CFF]/30">
 							<Suspense fallback={<LoadingFallback />}>
 								{path === '/docs' && <Docs />}
 								{path === '/privacy' && <Privacy />}

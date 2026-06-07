@@ -1,87 +1,98 @@
 import { Shield, EyeOff, Lock, UserCheck, ArrowLeft } from 'lucide-react';
-
-const GlassCard = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
-  <div className={`glass-effect rounded-[32px] p-8 md:p-12 border border-white/5 ${className}`}>
-    {children}
-  </div>
-);
+import { motion } from 'framer-motion';
+import { PremiumBackground } from '../animations/PremiumBackground';
+import { Header } from '../ui/Header';
+import { Footer } from '../ui/Footer';
 
 export default function Privacy() {
   return (
-    <div className="min-h-screen bg-[#050816] text-white font-sans p-6 md:p-20 relative overflow-hidden">
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-20">
-         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/20 blur-[120px] rounded-full" />
-      </div>
+    <div className="relative min-h-screen bg-background text-white font-sans selection:bg-primary/30">
+      <PremiumBackground />
+      <Header />
 
-      <div className="max-w-4xl mx-auto relative z-10">
-        <a href="/" className="inline-flex items-center gap-2 text-text-muted hover:text-white transition-colors mb-12 uppercase text-[10px] font-black tracking-[0.2em]">
-          <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-        </a>
-
-        <header className="mb-20 text-center md:text-left">
-          <h1 className="text-5xl md:text-7xl font-display font-black tracking-tighter uppercase mb-6 italic">Privacy <br /><span className="text-secondary">Manifesto</span></h1>
-          <p className="text-xl text-text-muted font-medium italic leading-relaxed">WalBlob is built on the principle of absolute statelessness.</p>
-        </header>
-
-        <section className="space-y-12">
-          <GlassCard>
-            <div className="flex flex-col md:flex-row gap-10">
-               <div className="flex-1 space-y-8">
-                  <div className="flex gap-6">
-                     <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 flex-shrink-0">
-                        <EyeOff className="text-secondary w-6 h-6" />
-                     </div>
-                     <div>
-                        <h4 className="text-lg font-black uppercase tracking-tight mb-2">Zero Tracking</h4>
-                        <p className="text-text-muted text-sm leading-relaxed">No cookies. No IP logging. No Google Analytics. We don't even have a database to store your metadata.</p>
-                     </div>
-                  </div>
-                  <div className="flex gap-6">
-                     <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 flex-shrink-0">
-                        <UserCheck className="text-success w-6 h-6" />
-                     </div>
-                     <div>
-                        <h4 className="text-lg font-black uppercase tracking-tight mb-2">Stateless Frontend</h4>
-                        <p className="text-text-muted text-sm leading-relaxed">Your files and keys live in your browser's RAM during the session. Once you close the tab, all local traces are purged.</p>
-                     </div>
-                  </div>
-               </div>
-               <div className="md:w-px bg-white/5" />
-               <div className="flex-1 space-y-8">
-                  <div className="flex gap-6">
-                     <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 flex-shrink-0">
-                        <Shield className="text-primary w-6 h-6" />
-                     </div>
-                     <div>
-                        <h4 className="text-lg font-black uppercase tracking-tight mb-2">Encrypted Identity</h4>
-                        <p className="text-text-muted text-sm leading-relaxed">Your Sui wallet address is your only identifier. We never link it to any real-world identity.</p>
-                     </div>
-                  </div>
-                  <div className="flex gap-6">
-                     <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 flex-shrink-0">
-                        <Lock className="text-violet-400 w-6 h-6" />
-                     </div>
-                     <div>
-                        <h4 className="text-lg font-black uppercase tracking-tight mb-2">Your Keys, Your Data</h4>
-                        <p className="text-text-muted text-sm leading-relaxed">Decryption keys are never uploaded. Loss of a key means permanent loss of data access. We cannot reset your password.</p>
-                     </div>
-                  </div>
-               </div>
-            </div>
-          </GlassCard>
-
-          <div className="p-10 border border-white/5 rounded-[40px] bg-white/[0.01]">
-             <h3 className="text-xl font-bold mb-6 flex items-center gap-3"><Lock className="w-5 h-5 text-primary" /> GDPR Compliance</h3>
-             <p className="text-text-muted text-sm leading-relaxed">
-                By using decentralized storage (Walrus), you exercise your right to own your data. Data is immutable once stored for the retention period. As a stateless gateway, WalBlob does not process personal data as defined by GDPR.
-             </p>
+      <section className="relative pt-32 md:pt-48 pb-40 px-6 flex flex-col items-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-4xl"
+        >
+          <div className="text-center mb-20 space-y-8">
+            <a href="/" className="inline-flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-text-dim hover:text-white transition-all group">
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
+            </a>
+            
+            <h1 className="text-4xl md:text-8xl font-display font-bold tracking-tighter leading-[1] text-white">
+              Privacy <br />
+              <span className="text-gradient-premium">Manifesto</span>
+            </h1>
+            
+            <p className="text-text-dim text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
+              WalBlob is architected on the principle of absolute statelessness. 
+              Trust the mathematics, not the infrastructure.
+            </p>
           </div>
-        </section>
 
-        <footer className="mt-40 pt-10 border-t border-white/5 text-center">
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/10 italic">"Trust the math, not the middleman."</p>
-        </footer>
-      </div>
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { 
+                  icon: EyeOff, 
+                  title: "Zero Tracking", 
+                  desc: "No cookies. No IP logging. No analytics. We maintain zero databases for user metadata.",
+                  color: "text-secondary" 
+                },
+                { 
+                  icon: UserCheck, 
+                  title: "Stateless Frontend", 
+                  desc: "Files and keys exist only in your browser's session memory. Closing the tab purges all traces.",
+                  color: "text-success" 
+                },
+                { 
+                  icon: Shield, 
+                  title: "Encrypted Identity", 
+                  desc: "Your Sui wallet address is your only identifier. We never link it to real-world identities.",
+                  color: "text-primary" 
+                },
+                { 
+                  icon: Lock, 
+                  title: "Your Keys, Your Data", 
+                  desc: "Decryption keys never leave your device. Loss of a key means permanent loss of data access.",
+                  color: "text-accent" 
+                }
+              ].map((item, i) => (
+                <div key={i} className="p-10 rounded-[40px] glass-effect border border-white/5 hover:bg-white/[0.02] transition-all group space-y-8">
+                  <div className={`w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 ${item.color} group-hover:scale-110 transition-transform duration-500`}>
+                    <item.icon className="w-7 h-7" />
+                  </div>
+                  <div className="space-y-4">
+                    <h4 className="text-xl font-display font-bold text-white tracking-tight">{item.title}</h4>
+                    <p className="text-text-muted text-base leading-relaxed font-medium">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-12 md:p-16 rounded-[48px] bg-white/[0.01] border border-white/5 space-y-8 relative overflow-hidden">
+               <h3 className="text-2xl font-display font-bold text-white flex items-center gap-4 relative z-10">
+                 <Lock className="w-6 h-6 text-primary" /> Self-Sovereign Compliance
+               </h3>
+               <p className="text-text-muted text-lg leading-relaxed font-medium relative z-10">
+                  By utilizing the decentralized Walrus protocol, you exercise your fundamental right to data ownership. 
+                  Stored blobs are immutable for the chosen retention period. As a stateless gateway, 
+                  WalBlob does not process, store, or transmit personal data to centralized entities.
+               </p>
+               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[120px] rounded-full translate-x-20 -translate-y-20 pointer-events-none" />
+            </div>
+          </div>
+
+          <div className="mt-24 text-center">
+            <p className="text-xs font-bold uppercase tracking-[0.4em] text-white/10 italic">"Cryptography is the ultimate barrier against surveillance."</p>
+          </div>
+        </motion.div>
+      </section>
+
+      <Footer />
     </div>
   );
 }

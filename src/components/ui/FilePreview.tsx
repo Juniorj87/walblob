@@ -58,36 +58,35 @@ const formatDate = (timestamp: number) => {
 export const FilePreview = ({ file, className }: FilePreviewProps) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       className={cn(
-        "bg-white/[0.03] border border-white/10 rounded-[32px] p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 md:gap-12 text-left relative overflow-hidden group/preview",
+        "bg-white/[0.02] border border-white/5 rounded-[32px] p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 md:gap-12 text-left relative overflow-hidden group/preview shadow-xl",
         className
       )}
     >
-      {/* Background Glow */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full translate-x-10 -translate-y-10" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[80px] rounded-full translate-x-16 -translate-y-16 pointer-events-none" />
       
-      <div className="w-20 h-20 md:w-24 md:h-24 bg-white/5 rounded-2xl md:rounded-[32px] border border-white/10 flex items-center justify-center shrink-0 shadow-2xl relative group-hover/preview:border-primary/30 transition-all duration-500">
+      <div className="w-20 h-20 md:w-24 md:h-24 bg-white/5 rounded-[28px] border border-white/5 flex items-center justify-center shrink-0 relative group-hover/preview:border-primary/20 transition-all duration-700">
         <FileTypeIcon type={file.type} className="w-10 h-10 md:w-12 md:h-12 text-primary" />
       </div>
 
-      <div className="flex-1 space-y-6 w-full">
+      <div className="flex-1 space-y-6 w-full relative z-10">
         <div>
-          <h3 className="text-lg md:text-xl font-bold text-white mb-2 truncate max-w-[280px] md:max-w-md">
+          <h3 className="text-xl font-display font-bold text-white mb-2 truncate max-w-[280px] md:max-w-md">
             {file.name}
           </h3>
-          <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">
-            <span className="flex items-center gap-1.5"><HardDrive className="w-3 h-3" /> {formatSize(file.size)}</span>
-            <span className="flex items-center gap-1.5"><Calendar className="w-3 h-3" /> {formatDate(file.lastModified)}</span>
+          <div className="flex items-center gap-6 text-[11px] font-bold uppercase tracking-widest text-text-dim">
+            <span className="flex items-center gap-2"><HardDrive className="w-3.5 h-3.5 opacity-50" /> {formatSize(file.size)}</span>
+            <span className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 opacity-50" /> {formatDate(file.lastModified)}</span>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <div className="px-4 py-2 rounded-full bg-white/5 border border-white/5 text-[9px] font-black uppercase tracking-widest text-white/60">
-            {file.type || 'unknown type'}
+          <div className="px-5 py-2.5 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold uppercase tracking-widest text-white/40">
+            {file.type || 'RAW BLOB'}
           </div>
-          <div className="px-4 py-2 rounded-full bg-emerald-400/10 border border-emerald-400/10 text-[9px] font-black uppercase tracking-widest text-emerald-400">
+          <div className="px-5 py-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold uppercase tracking-widest text-emerald-400">
             Ready to Seal
           </div>
         </div>

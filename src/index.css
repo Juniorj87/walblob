@@ -1,18 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #050816;
-  --color-surface: rgba(255, 255, 255, 0.03);
-  --color-primary: #00D1FF;
-  --color-secondary: #7B61FF;
-  --color-success: #00FFA3;
+  --color-background: #020617;
+  --color-surface: rgba(255, 255, 255, 0.02);
+  --color-primary: #4F7CFF;
+  --color-secondary: #6A5CFF;
+  --color-accent: #8B5CF6;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
   --color-text-main: #FFFFFF;
-  --color-text-muted: #94A3B8;
+  --color-text-muted: #D1D5DB;
+  --color-text-dim: #94A3B8;
 
   --font-display: "Space Grotesk", system-ui, sans-serif;
   --font-sans: "Inter", system-ui, sans-serif;
 
-  --radius-card: 24px;
+  --radius-card: 32px;
   --radius-pill: 100px;
 }
 
@@ -23,7 +26,7 @@
 
   color-scheme: dark;
   color: white;
-  background-color: #050816;
+  background-color: #020617;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -34,71 +37,68 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: #050816;
+  background: #020617;
   overflow-x: hidden;
 }
 
 /* Custom Utilities */
 .glass-effect {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 .premium-shadow {
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
 }
 
-.text-gradient {
-  background: linear-gradient(to bottom, #FFFFFF, rgba(255, 255, 255, 0.6));
+.text-gradient-premium {
+  background: linear-gradient(135deg, #4F7CFF 0%, #8B5CF6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
+.mesh-wave {
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(225, 100%, 65%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(250, 100%, 70%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(265, 100%, 65%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(225, 100%, 65%, 0.1) 0px, transparent 50%);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 /* Premium Slider Styles */
 .slider-premium {
-  height: 4px;
+  height: 6px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 100px;
 }
 .slider-premium::-webkit-slider-thumb {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: #ffffff;
   cursor: pointer;
-  border: 5px solid #00D1FF;
-  box-shadow: 0 0 25px rgba(0,209,255,0.4);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@media (min-width: 768px) {
-  .slider-premium::-webkit-slider-thumb {
-    width: 28px;
-    height: 28px;
-    border: 6px solid #00D1FF;
-    box-shadow: 0 0 30px rgba(0,209,255,0.5);
-  }
+  border: 4px solid #4F7CFF;
+  box-shadow: 0 0 20px rgba(79, 124, 255, 0.4);
+  transition: all 0.2s ease;
 }
 .slider-premium::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
-}
-.slider-premium::-moz-range-thumb {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #ffffff;
-  cursor: pointer;
-  border: 5px solid #00D1FF;
-  box-shadow: 0 0 25px rgba(0,209,255,0.4);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@media (min-width: 768px) {
-  .slider-premium::-moz-range-thumb {
-    width: 28px;
-    height: 28px;
-    border: 6px solid #00D1FF;
-    box-shadow: 0 0 30px rgba(0,209,255,0.5);
-  }
-}
-.slider-premium::-moz-range-thumb:hover {
-  transform: scale(1.15);
+  transform: scale(1.1);
+  box-shadow: 0 0 30px rgba(79, 124, 255, 0.6);
 }

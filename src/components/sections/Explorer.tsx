@@ -22,12 +22,6 @@ interface BlobInfo {
   endEpoch: number;
 }
 
-const GlassCard = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
-  <div className={cn("glass-effect rounded-[32px] border border-white/5 premium-shadow overflow-hidden relative group/card", className)}>
-    {children}
-  </div>
-);
-
 export const Explorer = () => {
   const { network, config } = useNetwork();
   const [blobId, setBlobId] = useState('');
@@ -53,7 +47,6 @@ export const Explorer = () => {
     setResult(null);
 
     try {
-      // Fetch metadata from aggregator (read-only)
       const response = await fetch(`${config.aggregatorUrl}/v1/blobs/${cleanId}/metadata`, {
         mode: 'cors',
         cache: 'no-cache'
@@ -87,26 +80,14 @@ export const Explorer = () => {
   };
 
   return (
-    <section id="explorer" className="scroll-mt-32 md:scroll-mt-48">
-      <div className="text-center mb-16 md:mb-20 space-y-4">
-        <div className="inline-flex items-center gap-2 px-5 py-2 rounded-pill bg-secondary/10 border border-secondary/20 text-secondary text-[10px] font-black uppercase tracking-[0.4em] mb-4">
-          <Globe className="w-3.5 h-3.5" /> Network Explorer
-        </div>
-        <h2 className="text-4xl md:text-7xl font-display font-black tracking-tighter uppercase text-white leading-tight">
-          Blob <span className="text-secondary">Explorer</span>
-        </h2>
-        <p className="text-text-muted text-base md:text-lg font-medium max-w-2xl mx-auto leading-relaxed px-4">
-          Verify data availability and storage parameters across the {network} without downloading or decrypting the content.
-        </p>
-      </div>
-
+    <div id="explorer" className="w-full">
       <div className="max-w-4xl mx-auto relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-secondary/10 via-primary/10 to-secondary/10 rounded-[40px] blur-xl opacity-50 group-hover:opacity-100 transition-opacity duration-1000" />
+        <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 rounded-[48px] blur-2xl opacity-50 group-hover:opacity-100 transition-opacity duration-1000" />
         
-        <GlassCard className="p-8 md:p-16 bg-[#0A0D1D]/60 backdrop-blur-[80px]">
-          <form onSubmit={handleSearch} className="space-y-10">
-            <div className="space-y-4">
-              <label className="block text-[10px] font-black uppercase tracking-[0.4em] text-white/30 ml-6">Walrus Blob Identifier</label>
+        <div className="relative bg-[#020617]/80 backdrop-blur-[60px] rounded-[44px] border border-white/10 shadow-2xl overflow-hidden p-8 md:p-16">
+          <form onSubmit={handleSearch} className="space-y-12">
+            <div className="space-y-6">
+              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 ml-4">Walrus Blob Identifier</label>
               <div className="relative">
                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
                 <input 
@@ -114,102 +95,102 @@ export const Explorer = () => {
                   value={blobId}
                   onChange={(e) => setBlobId(e.target.value)}
                   placeholder="Enter Blob ID to investigate..."
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-8 text-sm font-mono text-white/80 outline-none focus:border-secondary/50 focus:bg-white/10 transition-all"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-6 pl-16 pr-8 text-sm font-mono text-white/80 outline-none focus:border-primary/40 focus:bg-white/[0.03] transition-all"
                 />
               </div>
             </div>
 
             {error && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-5 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center gap-4">
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-5 rounded-2xl bg-red-500/5 border border-red-500/10 flex items-center gap-4">
                 <ShieldAlert className="w-5 h-5 text-red-400" />
-                <div className="text-[10px] font-black text-red-400 uppercase tracking-widest">{error}</div>
+                <div className="text-xs font-bold text-red-400 uppercase tracking-widest">{error}</div>
               </motion.div>
             )}
 
             <AnimatePresence mode="wait">
               {result && (
                 <motion.div 
-                  initial={{ opacity: 0, y: 20 }} 
-                  animate={{ opacity: 1, y: 0 }} 
+                  initial={{ opacity: 0, scale: 0.98 }} 
+                  animate={{ opacity: 1, scale: 1 }} 
                   exit={{ opacity: 0 }}
-                  className="space-y-6"
+                  className="space-y-8"
                 >
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-black/40 rounded-2xl border border-white/5 p-6 space-y-4">
+                      <div className="bg-white/[0.02] rounded-3xl border border-white/5 p-6 space-y-4">
                          <div className="flex items-center gap-3">
                             <Database className="w-4 h-4 text-white/20" />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Status</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Status</span>
                          </div>
                          <div className="flex items-center gap-3">
                             <div className={cn(
                                "w-2.5 h-2.5 rounded-full animate-pulse",
-                               result.status === 'Available' ? "bg-emerald-400" :
-                               result.status === 'Pending' ? "bg-orange-400" : "bg-red-400"
+                               result.status === 'Available' ? "bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.5)]" :
+                               result.status === 'Pending' ? "bg-warning shadow-[0_0_10px_rgba(245,158,11,0.5)]" : "bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.5)]"
                             )} />
                             <span className={cn(
-                               "text-xl font-display font-black uppercase italic",
+                               "text-2xl font-display font-bold text-white",
                                result.status === 'Available' ? "text-emerald-400" :
-                               result.status === 'Pending' ? "text-orange-400" : "text-red-400"
+                               result.status === 'Pending' ? "text-warning" : "text-red-400"
                             )}>{result.status}</span>
                          </div>
                       </div>
 
-                      <div className="bg-black/40 rounded-2xl border border-white/5 p-6 space-y-4">
+                      <div className="bg-white/[0.02] rounded-3xl border border-white/5 p-6 space-y-4">
                          <div className="flex items-center gap-3">
                             <Globe className="w-4 h-4 text-white/20" />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Network</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Network</span>
                          </div>
                          <div className="flex items-center gap-3">
-                            <span className="text-xl font-display font-black uppercase italic text-white">{network}</span>
+                            <span className="text-2xl font-display font-bold text-white uppercase">{network}</span>
                             <div className={cn(
-                               "px-2 py-0.5 rounded text-[8px] font-black uppercase",
-                               network === 'testnet' ? "bg-orange-400/10 text-orange-400" : "bg-emerald-400/10 text-emerald-400"
+                               "px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest",
+                               network === 'testnet' ? "bg-warning/10 text-warning" : "bg-emerald-400/10 text-emerald-400"
                             )}>Active</div>
                          </div>
                       </div>
                    </div>
 
                    {result.status !== 'Not Found' && (
-                      <div className="bg-black/40 rounded-2xl border border-white/5 p-8 space-y-8">
-                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-white/5">
+                      <div className="bg-white/[0.02] rounded-3xl border border-white/5 p-8 space-y-8">
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-8 border-b border-white/5">
                             <div className="space-y-2">
-                               <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Blob Size</span>
-                               <p className="text-2xl font-display font-black text-white">{formatSize(result.size)}</p>
+                               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">Blob Size</span>
+                               <p className="text-3xl font-display font-bold text-white">{formatSize(result.size)}</p>
                             </div>
                             <div className="space-y-2 md:text-right">
-                               <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Storage End Epoch</span>
-                               <p className="text-2xl font-display font-black text-white flex items-center md:justify-end gap-2 italic">
-                                  <Clock className="w-5 h-5 text-secondary" /> {result.endEpoch}
+                               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">Storage End Epoch</span>
+                               <p className="text-3xl font-display font-bold text-white flex items-center md:justify-end gap-3">
+                                  <Clock className="w-6 h-6 text-primary" /> {result.endEpoch}
                                </p>
                             </div>
                          </div>
 
                          <div className="space-y-4">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-white/20 ml-2">Internal Identifiers</span>
-                            <div className="grid grid-cols-1 gap-2">
-                               <div className="bg-white/5 p-4 rounded-xl border border-white/5 flex justify-between items-center group/id">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 ml-2">Internal Identifiers</span>
+                            <div className="grid grid-cols-1 gap-3">
+                               <div className="bg-black/40 p-4 rounded-xl border border-white/5 flex justify-between items-center group/id">
                                   <div className="min-w-0">
-                                     <span className="text-[8px] font-black text-white/20 uppercase block mb-1">Blob ID</span>
-                                     <p className="text-[10px] font-mono text-white/60 truncate">{result.blobId}</p>
+                                     <span className="text-[8px] font-bold text-white/20 uppercase block mb-1">Blob ID</span>
+                                     <p className="text-[11px] font-mono text-white/60 truncate pr-4">{result.blobId}</p>
                                   </div>
-                                  <CopyButton text={result.blobId} className="bg-transparent border-none" />
+                                  <CopyButton text={result.blobId} className="bg-white/5 border-none p-2 rounded-lg" />
                                </div>
-                               <div className="bg-white/5 p-4 rounded-xl border border-white/5 flex justify-between items-center group/url">
+                               <div className="bg-black/40 p-4 rounded-xl border border-white/5 flex justify-between items-center group/url">
                                   <div className="min-w-0">
-                                     <span className="text-[8px] font-black text-white/20 uppercase block mb-1">Aggregator Node</span>
-                                     <p className="text-[10px] font-mono text-white/60 truncate">{config.aggregatorUrl}</p>
+                                     <span className="text-[8px] font-bold text-white/20 uppercase block mb-1">Aggregator Node</span>
+                                     <p className="text-[11px] font-mono text-white/60 truncate pr-4">{config.aggregatorUrl}</p>
                                   </div>
-                                  <CopyButton text={config.aggregatorUrl} className="bg-transparent border-none" />
+                                  <CopyButton text={config.aggregatorUrl} className="bg-white/5 border-none p-2 rounded-lg" />
                                </div>
                             </div>
                          </div>
 
-                         <div className="pt-4 flex justify-center">
+                         <div className="pt-6 flex justify-center">
                             <a 
                               href={`${config.explorerUrl}/blob/${result.blobId}`} 
                               target="_blank" 
                               rel="noreferrer"
-                              className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-secondary/10 border border-secondary/20 text-[10px] font-black uppercase tracking-[0.2em] text-secondary hover:bg-secondary/20 transition-all shadow-lg"
+                              className="inline-flex items-center gap-3 px-10 py-4 rounded-full bg-primary/10 border border-primary/20 text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary/20 transition-all"
                             >
                                View on Walrus Scan <ExternalLink className="w-4 h-4" />
                             </a>
@@ -218,12 +199,14 @@ export const Explorer = () => {
                    )}
 
                    {result.status === 'Not Found' && (
-                      <div className="bg-red-400/5 rounded-2xl border border-red-400/10 p-8 text-center space-y-4">
-                         <AlertCircle className="w-12 h-12 text-red-400/40 mx-auto" />
-                         <div className="space-y-2">
-                            <h4 className="text-white font-black uppercase tracking-widest">Blob not found</h4>
-                            <p className="text-xs text-white/40 max-w-sm mx-auto leading-relaxed">
-                               The network could not locate this blob. It may have expired, or it's still being distributed across shards.
+                      <div className="bg-red-400/5 rounded-3xl border border-red-400/10 p-10 text-center space-y-6">
+                         <div className="w-16 h-16 rounded-full bg-red-400/10 flex items-center justify-center mx-auto">
+                            <AlertCircle className="w-8 h-8 text-red-400/60" />
+                         </div>
+                         <div className="space-y-3">
+                            <h4 className="text-xl font-display font-bold text-white">Blob Not Found</h4>
+                            <p className="text-sm text-text-muted max-w-sm mx-auto leading-relaxed">
+                               The network could not locate this blob. It may have expired, or it is still being distributed across shards.
                             </p>
                          </div>
                          <div className="pt-4">
@@ -231,9 +214,9 @@ export const Explorer = () => {
                                href={`${config.explorerUrl}/blob/${result.blobId}`} 
                                target="_blank" 
                                rel="noreferrer"
-                               className="text-[9px] font-black uppercase tracking-widest text-red-400/60 hover:text-red-400 transition-colors flex items-center justify-center gap-2"
+                               className="text-xs font-bold uppercase tracking-widest text-red-400/60 hover:text-red-400 transition-colors flex items-center justify-center gap-2"
                             >
-                               Check Global Ledger <ExternalLink className="w-3 h-3" />
+                               Check Global Ledger <ExternalLink className="w-4 h-4" />
                             </a>
                          </div>
                       </div>
@@ -244,21 +227,21 @@ export const Explorer = () => {
 
             <button 
               disabled={isLoading || !blobId}
-              className="w-full bg-secondary text-black py-6 rounded-pill font-black text-[12px] uppercase tracking-[0.4em] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_20px_40px_rgba(0,209,255,0.1)] disabled:opacity-20 flex items-center justify-center gap-4"
+              className="w-full bg-white text-black py-7 rounded-full font-bold text-sm uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_20px_50px_rgba(255,255,255,0.15)] disabled:opacity-20 flex items-center justify-center gap-4"
             >
               {isLoading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /> Querying Network...</>
+                <><Loader2 className="w-6 h-6 animate-spin" /> Querying Network...</>
               ) : (
-                <><Search className="w-5 h-5" /> Explore Blob</>
+                <><Search className="w-6 h-6" /> Explore Blob</>
               )}
             </button>
 
-            <div className="pt-4 flex items-center justify-center gap-3 text-[9px] font-black uppercase tracking-widest text-white/20">
-               <Info className="w-3.5 h-3.5" /> Read-only mode. No decryption required.
+            <div className="pt-6 flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest text-white/20">
+               <Info className="w-4 h-4" /> Read-only mode · Direct network verification
             </div>
           </form>
-        </GlassCard>
+        </div>
       </div>
-    </section>
+    </div>
   );
 };

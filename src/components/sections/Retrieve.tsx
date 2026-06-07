@@ -6,11 +6,12 @@ import {
 } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { Header } from '../ui/Header';
-import { OrbitalParticles } from '../animations/OrbitalParticles';
+import { PremiumBackground } from '../animations/PremiumBackground';
 import { decryptFile } from '../../utils/decryptFile';
 import { twMerge } from 'tailwind-merge';
 import { clsx, type ClassValue } from 'clsx';
 import { parseRecoveryPackage } from '../../utils/RecoveryPackageParser';
+import { Footer } from '../ui/Footer';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -61,10 +62,8 @@ export default function Retrieve() {
 
     let encryptedBlob: Blob | null = null;
 
-    // Multi-Aggregator Fallback Strategy
     for (const baseUrl of AGGREGATORS) {
       try {
-        if (import.meta.env.DEV) console.log(`Walrus: Trying aggregator ${baseUrl}`);
         const response = await fetch(`${baseUrl}/v1/blobs/${cleanBlobId}`, {
           mode: 'cors',
           cache: 'no-cache'
@@ -84,7 +83,7 @@ export default function Retrieve() {
       setError(
         <div className="space-y-4 text-left">
           <p className="text-red-400 font-bold">Blob not found on the network shards.</p>
-          <p className="text-[11px] text-white/40 leading-relaxed">
+          <p className="text-sm text-text-muted leading-relaxed">
             Walrus is a decentralized protocol. Sometimes it takes a few minutes for all shards 
             to become available on specific aggregator nodes.
           </p>
@@ -93,7 +92,7 @@ export default function Retrieve() {
               href={`https://walruscan.com/testnet/blob/${cleanBlobId}`} 
               target="_blank" 
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 transition-all"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary/10 transition-all"
             >
               Verify Global Certification <ExternalLink className="w-4 h-4" />
             </a>
@@ -104,7 +103,6 @@ export default function Retrieve() {
     }
 
     try {
-      setStatus('verifying');
       setStatus('decrypting');
       const { file: decryptedFile, integrityVerified: isVerified } = await decryptFile(encryptedBlob, cleanKey, `walblob-${cleanBlobId.slice(0, 8)}`);
       setIntegrityVerified(isVerified);
@@ -134,48 +132,51 @@ export default function Retrieve() {
   };
 
   return (
-    <div className="relative min-h-screen bg-background text-white selection:bg-primary/30">
-      <OrbitalParticles />
+    <div className="relative min-h-screen bg-background text-white selection:bg-primary/30 font-sans">
+      <PremiumBackground />
       <Header />
 
-      <section className="relative pt-32 md:pt-48 pb-20 px-6 flex flex-col items-center">
+      <section className="relative pt-32 md:pt-48 pb-40 px-6 flex flex-col items-center">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           className="w-full max-w-4xl text-center"
         >
-          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-pill bg-white/5 border border-white/10 text-primary text-[11px] font-black uppercase tracking-[0.4em] mb-12 shadow-2xl backdrop-blur-xl">
-            <Lock className="w-4 h-4" /> Secure Retrieval
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-10 backdrop-blur-xl">
+            <Lock className="w-3.5 h-3.5" /> Secure Retrieval
           </div>
           
-          <h1 className="text-4xl md:text-8xl font-display font-black tracking-tighter leading-[0.85] mb-12">
-            Recover Your <span className="text-gradient">Sealed Data</span>
+          <h1 className="text-4xl md:text-8xl font-display font-bold tracking-tighter leading-[1] mb-12">
+            Recover Your <span className="text-gradient-premium">Sealed Data</span>
           </h1>
 
-          <div className="relative group mt-20">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 rounded-[48px] blur-xl opacity-50" />
+          <div className="relative group mt-12 md:mt-20">
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 rounded-[48px] blur-2xl opacity-50" />
             
-            <div className="relative bg-[#0A0D1D]/80 backdrop-blur-[60px] rounded-[44px] border border-white/10 shadow-2xl overflow-hidden p-8 md:p-16">
+            <div className="relative bg-[#020617]/80 backdrop-blur-[60px] rounded-[44px] border border-white/10 shadow-2xl overflow-hidden p-8 md:p-16">
                <div 
                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                  onDragLeave={() => setIsDragging(false)}
                  onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if(f) handlePackageImport(f); }}
                  className={cn(
-                   "absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#050816]/95 transition-all duration-500",
+                   "absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#020617]/95 transition-all duration-500",
                    isDragging ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
                  )}
                >
-                  <FileJson className="w-16 h-16 text-primary animate-pulse mb-6" />
-                  <p className="text-lg font-black uppercase tracking-[0.4em] text-white">Import Package</p>
-                  <p className="text-text-muted text-xs mt-2 uppercase tracking-widest">Drop .walblob file to auto-fill</p>
+                  <div className="w-20 h-20 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-6">
+                    <FileJson className="w-10 h-10 text-primary animate-pulse" />
+                  </div>
+                  <p className="text-xl font-display font-bold text-white">Import Package</p>
+                  <p className="text-text-dim text-sm mt-2 font-medium">Drop .walblob file to auto-fill details</p>
                </div>
 
-               <form onSubmit={handleRetrieve} className="space-y-10">
-                  <div className="space-y-4">
-                     <div className="flex justify-between items-center px-6">
-                        <label className="block text-[10px] font-black uppercase tracking-[0.4em] text-white/30 text-left">Blob Identifier</label>
-                        <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">
-                          <Upload className="w-3 h-3" /> Select Recovery Package
+               <form onSubmit={handleRetrieve} className="space-y-12">
+                  <div className="space-y-6">
+                     <div className="flex justify-between items-center px-4">
+                        <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 text-left">Blob Identifier</label>
+                        <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary hover:text-white transition-colors">
+                          <Upload className="w-3.5 h-3.5" /> Select Recovery Package
                         </button>
                         <input type="file" accept=".walblob" ref={fileInputRef} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if(f) handlePackageImport(f); }} />
                      </div>
@@ -186,13 +187,13 @@ export default function Retrieve() {
                           value={blobId}
                           onChange={(e) => setBlobId(e.target.value)}
                           placeholder="Enter Walrus Blob ID..."
-                          className="w-full bg-white/5 border border-white/10 rounded-2xl py-6 pl-16 pr-8 text-sm font-mono text-white/80 outline-none focus:border-primary/50 transition-all"
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl py-6 pl-16 pr-8 text-sm font-mono text-white/80 outline-none focus:border-primary/40 focus:bg-white/[0.03] transition-all"
                         />
                      </div>
                   </div>
 
-                  <div className="space-y-4">
-                     <label className="block text-[10px] font-black uppercase tracking-[0.4em] text-white/30 ml-6 text-left">Decryption Key</label>
+                  <div className="space-y-6">
+                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 ml-4 text-left">Decryption Key</label>
                      <div className="relative">
                         <Key className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
                         <input 
@@ -200,22 +201,22 @@ export default function Retrieve() {
                           value={decryptionKey}
                           onChange={(e) => setDecryptionKey(e.target.value)}
                           placeholder="Paste your 256-bit AES key..."
-                          className="w-full bg-white/5 border border-white/10 rounded-2xl py-6 pl-16 pr-8 text-sm font-mono text-white/80 outline-none focus:border-primary/50 transition-all"
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl py-6 pl-16 pr-8 text-sm font-mono text-white/80 outline-none focus:border-primary/40 focus:bg-white/[0.03] transition-all"
                         />
                      </div>
                   </div>
 
                   {importedMeta && (
-                    <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 px-6 py-3 rounded-xl bg-white/5 border border-white/5 w-fit mx-auto">
-                      <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                      <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Ready to recover: <span className="text-white">{importedMeta}</span></span>
-                      <button type="button" onClick={() => setImportedMeta(null)} className="ml-2 text-white/20 hover:text-white transition-colors uppercase text-[8px] font-black">Clear</button>
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-4 px-6 py-4 rounded-2xl bg-primary/5 border border-primary/10 w-fit mx-auto">
+                      <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(79,124,255,0.5)]" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">Ready to recover: <span className="text-white">{importedMeta}</span></span>
+                      <button type="button" onClick={() => setImportedMeta(null)} className="ml-4 text-white/20 hover:text-white transition-colors uppercase text-[9px] font-bold tracking-widest">Clear</button>
                     </motion.div>
                   )}
 
                   {error && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-[10px] font-black text-red-400 uppercase tracking-widest flex items-center gap-3">
-                       <ShieldAlert className="w-4 h-4" /> <div className="text-left">{error}</div>
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-5 rounded-2xl bg-red-500/5 border border-red-500/10 text-xs font-bold text-red-400 uppercase tracking-widest flex items-center gap-4">
+                       <ShieldAlert className="w-5 h-5 shrink-0" /> <div className="text-left leading-relaxed">{error}</div>
                     </motion.div>
                   )}
 
@@ -224,14 +225,14 @@ export default function Retrieve() {
                       initial={{ opacity: 0, scale: 0.9 }} 
                       animate={{ opacity: 1, scale: 1 }} 
                       className={cn(
-                        "p-4 rounded-xl border flex items-center gap-3 justify-center",
+                        "p-5 rounded-2xl border flex items-center gap-4 justify-center",
                         integrityVerified 
-                          ? "bg-emerald-400/10 border-emerald-400/20 text-emerald-400" 
-                          : "bg-red-400/10 border-red-400/20 text-red-400"
+                          ? "bg-emerald-400/5 border-emerald-400/10 text-emerald-400" 
+                          : "bg-red-400/5 border-red-400/10 text-red-400"
                       )}
                     >
-                      {integrityVerified ? <CheckCircle2 className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
-                      <span className="text-[10px] font-black uppercase tracking-widest">
+                      {integrityVerified ? <CheckCircle2 className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
+                      <span className="text-xs font-bold uppercase tracking-widest">
                         {integrityVerified ? 'Integrity Verified' : 'Integrity Check Failed'}
                       </span>
                     </motion.div>
@@ -243,11 +244,11 @@ export default function Retrieve() {
                         initial={{ opacity: 0, height: 0 }} 
                         animate={{ opacity: 1, height: 'auto' }} 
                         exit={{ opacity: 0 }}
-                        className="bg-black/40 rounded-3xl border border-white/5 p-8 space-y-6"
+                        className="bg-black/40 rounded-[32px] border border-white/5 p-8 space-y-8"
                       >
-                         <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em]">
+                         <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em]">
                             <span className="text-white/40">Status: <span className="text-primary">{status}</span></span>
-                            <span className="text-white/10">Zero-Knowledge Retrieval</span>
+                            <span className="text-white/10 italic">Zero-Knowledge Secure Tunnel</span>
                          </div>
                          
                          <div className="flex items-center justify-between gap-4">
@@ -257,20 +258,20 @@ export default function Retrieve() {
                               { label: 'Decrypt', s: 'decrypting' },
                               { label: 'Ready', s: 'success' }
                             ].map((step, i) => (
-                              <div key={i} className="flex-1 flex flex-col items-center gap-3">
+                              <div key={i} className="flex-1 flex flex-col items-center gap-4">
                                  <div className={cn(
-                                   "w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-500",
-                                   status === step.s ? "border-primary bg-primary/20 text-primary shadow-[0_0_20px_rgba(0,209,255,0.3)]" : 
+                                   "w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-700",
+                                   status === step.s ? "border-primary bg-primary/10 text-primary shadow-[0_0_25px_rgba(79,124,255,0.3)]" : 
                                    ['verifying','decrypting','reconstructing','success'].includes(status) && i === 0 || 
                                    ['decrypting','reconstructing','success'].includes(status) && i === 1 ||
                                    ['reconstructing','success'].includes(status) && i === 2 ||
                                    status === 'success' && i === 3
-                                   ? "border-emerald-400 bg-emerald-400/20 text-emerald-400" : "border-white/10 text-white/10"
+                                   ? "border-emerald-400 bg-emerald-400/10 text-emerald-400" : "border-white/5 text-white/10"
                                  )}>
-                                    {status === 'success' && i === 3 ? <CheckCircle2 className="w-4 h-4" /> : <div className="text-[10px] font-black">{i + 1}</div>}
+                                    {status === 'success' && i === 3 ? <CheckCircle2 className="w-5 h-5" /> : <div className="text-xs font-bold">{i + 1}</div>}
                                  </div>
                                  <span className={cn(
-                                   "text-[8px] font-black uppercase tracking-widest",
+                                   "text-[9px] font-bold uppercase tracking-widest",
                                    status === step.s ? "text-primary" : "text-white/10"
                                  )}>{step.label}</span>
                               </div>
@@ -282,7 +283,7 @@ export default function Retrieve() {
 
                   <button 
                     disabled={(status !== 'idle' && status !== 'success' && status !== 'error') || !blobId || !decryptionKey}
-                    className="w-full bg-white text-black py-6 rounded-pill font-black text-[12px] uppercase tracking-[0.4em] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_20px_40px_rgba(255,255,255,0.1)] disabled:opacity-20 flex items-center justify-center gap-4"
+                    className="w-full bg-white text-black py-7 rounded-full font-bold text-sm uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_20px_50px_rgba(255,255,255,0.15)] disabled:opacity-20 flex items-center justify-center gap-4"
                   >
                     {status === 'idle' || status === 'error' ? (
                       <><Download className="w-5 h-5" /> Recover File</>
@@ -297,12 +298,14 @@ export default function Retrieve() {
           </div>
 
           <div className="mt-20 flex justify-center">
-            <a href="/" className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-white/30 hover:text-white transition-all">
-              <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+            <a href="/" className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-text-dim hover:text-white transition-all group">
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
             </a>
           </div>
         </motion.div>
       </section>
+
+      <Footer />
     </div>
   );
 }
