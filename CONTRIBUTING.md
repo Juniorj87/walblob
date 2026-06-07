@@ -6,7 +6,7 @@ We welcome contributions from the community! To maintain the premium quality of 
 
 1. **Clone & Install**:
    ```bash
-   git clone https://github.com/your-username/walblob.git
+   git clone https://github.com/Juniorj87/walblob.git
    cd walblob
    npm install
    ```

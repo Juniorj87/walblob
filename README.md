@@ -43,7 +43,7 @@ WalBlob ensures your data remains yours. By utilizing client-side encryption, yo
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/walblob.git
+   git clone https://github.com/Juniorj87/walblob.git
    cd walblob
    ```
 
