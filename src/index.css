@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #050816;
+  --color-surface: rgba(255, 255, 255, 0.03);
+  --color-primary: #00D1FF;
+  --color-secondary: #7B61FF;
+  --color-success: #00FFA3;
+  --color-text-main: #FFFFFF;
+  --color-text-muted: #94A3B8;
+
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+
+  --radius-card: 24px;
+  --radius-pill: 100px;
+}
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: white;
+  background-color: #050816;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #050816;
+  overflow-x: hidden;
+}
+
+/* Custom Utilities */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.premium-shadow {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+}
+
+.text-gradient {
+  background: linear-gradient(to bottom, #FFFFFF, rgba(255, 255, 255, 0.6));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Premium Slider Styles */
+.slider-premium {
+  height: 4px;
+}
+.slider-premium::-webkit-slider-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  border: 5px solid #00D1FF;
+  box-shadow: 0 0 25px rgba(0,209,255,0.4);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@media (min-width: 768px) {
+  .slider-premium::-webkit-slider-thumb {
+    width: 28px;
+    height: 28px;
+    border: 6px solid #00D1FF;
+    box-shadow: 0 0 30px rgba(0,209,255,0.5);
+  }
+}
+.slider-premium::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+.slider-premium::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  border: 5px solid #00D1FF;
+  box-shadow: 0 0 25px rgba(0,209,255,0.4);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@media (min-width: 768px) {
+  .slider-premium::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border: 6px solid #00D1FF;
+    box-shadow: 0 0 30px rgba(0,209,255,0.5);
+  }
+}
+.slider-premium::-moz-range-thumb:hover {
+  transform: scale(1.15);
+}

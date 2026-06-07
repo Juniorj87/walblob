@@ -1,0 +1,11 @@
+{
+  "name": "walblob",
+  "description": "Zero-Knowledge encrypted storage powered by Walrus. Secure, decentralized, and private.",
+  "category": "Infrastructure / Tooling / Privacy",
+  "links": {
+    "site": "https://walblob.com",
+    "github": "https://github.com/your-username/walblob"
+  },
+  "tags": ["Walrus", "Sui", "Encryption", "Privacy", "Zero-Knowledge"],
+  "version": "2.1.0"
+}
