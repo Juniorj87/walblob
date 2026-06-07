@@ -602,7 +602,7 @@ export default function Dashboard() {
                  <h6 className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.5em] md:tracking-[0.6em] text-white/20 uppercase tracking-widest">Ecosystem</h6>
                  <ul className="space-y-6 md:space-y-8 text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] text-text-muted">
                     <li><a href="/docs" className="hover:text-white transition-all hover:translate-x-1 inline-block">Documentation</a></li>
-                    <li><a href="#" className="hover:text-white transition-all hover:translate-x-1 inline-block">GitHub / Source</a></li>
+                    <li><a href="https://github.com/Juniorj87/walblob" target="_blank" rel="noreferrer" className="hover:text-white transition-all hover:translate-x-1 inline-block">GitHub / Source</a></li>
                     <li><a href="/status" className="hover:text-white transition-all hover:translate-x-1 inline-block">Network Status</a></li>
                  </ul>
               </div>
