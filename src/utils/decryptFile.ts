@@ -7,8 +7,14 @@
  */
 
 import { unpackFileWithMetadata } from './metadata';
+import { calculateHash } from './hash';
 
-export async function decryptFile(encryptedBlob: Blob, keyBase64: string, originalName: string = 'decrypted-file'): Promise<File> {
+export interface DecryptionResult {
+  file: File;
+  integrityVerified: boolean | null; // null if no hash in metadata
+}
+
+export async function decryptFile(encryptedBlob: Blob, keyBase64: string, originalName: string = 'decrypted-file'): Promise<DecryptionResult> {
   try {
     const combinedBuffer = await encryptedBlob.arrayBuffer();
     const combinedArray = new Uint8Array(combinedBuffer);
@@ -38,11 +44,24 @@ export async function decryptFile(encryptedBlob: Blob, keyBase64: string, origin
     const unpacked = unpackFileWithMetadata(decryptedBuffer);
     if (unpacked) {
       const { metadata, data } = unpacked;
-      return new File([data], metadata.name, { type: metadata.type || 'application/octet-stream' });
+      let integrityVerified = null;
+
+      if (metadata.hash) {
+        const currentHash = await calculateHash(data);
+        integrityVerified = currentHash === metadata.hash;
+      }
+
+      return {
+        file: new File([data], metadata.name, { type: metadata.type || 'application/octet-stream' }),
+        integrityVerified
+      };
     }
 
     // 5. Fallback for raw blobs
-    return new File([decryptedBuffer], originalName, { type: 'application/octet-stream' });
+    return {
+      file: new File([decryptedBuffer], originalName, { type: 'application/octet-stream' }),
+      integrityVerified: null
+    };
   } catch (err: unknown) {
     console.error('Decryption failed:', err);
     throw new Error('Invalid decryption key or corrupted data.', { cause: err });

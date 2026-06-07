@@ -1,8 +1,5 @@
 import { useState, useCallback } from 'react';
-
-// Walrus Network Endpoints
-const PUBLISHER_URL = import.meta.env.VITE_WALRUS_PUBLISHER_URL || 'https://publisher.walrus-testnet.walrus.space';
-const AGGREGATOR_URL = import.meta.env.VITE_WALRUS_AGGREGATOR_URL || 'https://aggregator.walrus-testnet.walrus.space';
+import { useNetwork } from '../context/NetworkContext';
 
 interface UploadStats {
   percentage: number;
@@ -27,6 +24,7 @@ interface WalrusResponse {
 }
 
 export function useWalrus() {
+  const { config } = useNetwork();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [stats, setStats] = useState<UploadStats | null>(null);
@@ -92,8 +90,8 @@ export function useWalrus() {
     setUploadProgress(0);
 
     const endpoints = [
-      `${PUBLISHER_URL}/v1/blobs`,
-      `${PUBLISHER_URL}/v1/store` // Fallback endpoint
+      `${config.publisherUrl}/v1/blobs`,
+      `${config.publisherUrl}/v1/store` // Fallback endpoint
     ];
 
     let lastError = '';
@@ -113,7 +111,7 @@ export function useWalrus() {
 
         setIsUploading(false);
         setUploadProgress(100);
-        return { blobId, url: `${AGGREGATOR_URL}/v1/blobs/${blobId}` };
+        return { blobId, url: `${config.aggregatorUrl}/v1/blobs/${blobId}` };
 
       } catch (err) {
         const error = err as { status?: number; text?: string; message?: string };

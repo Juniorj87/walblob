@@ -2,12 +2,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Key, Download, Loader2, ShieldCheck, 
   Search, Lock, ShieldAlert, FileJson, 
-  CheckCircle2, ExternalLink
+  CheckCircle2, ExternalLink, Upload
 } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { decryptFile } from '../../utils/decryptFile';
 import { twMerge } from 'tailwind-merge';
 import { clsx, type ClassValue } from 'clsx';
+import { parseRecoveryPackage } from '../../utils/RecoveryPackageParser';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -35,22 +36,21 @@ export const RecoveryBlock = () => {
   const [status, setStatus] = useState<RecoveryStatus>('idle');
   const [error, setError] = useState<React.ReactNode | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [importedMeta, setImportedMeta] = useState<string | null>(null);
+  const [integrityVerified, setIntegrityVerified] = useState<boolean | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handlePackageImport = async (file: File) => {
-    if (!file.name.endsWith('.walblob')) {
-      setError('Please select a valid .walblob package.');
-      return;
-    }
-
     try {
-      const text = await file.text();
-      const pkg = JSON.parse(text);
-      if (pkg.blobId) setBlobId(pkg.blobId.trim());
-      if (pkg.key) setDecryptionKey(pkg.key.trim());
+      const pkg = await parseRecoveryPackage(file);
+      setBlobId(pkg.blobId);
+      setDecryptionKey(pkg.key);
+      if (pkg.metadata?.name) {
+        setImportedMeta(pkg.metadata.name);
+      }
       setError(null);
-    } catch {
-      setError('Failed to parse recovery package.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to parse recovery package.');
     }
   };
 
@@ -112,7 +112,8 @@ export const RecoveryBlock = () => {
       setStatus('verifying');
       // 2. Local Decryption (Zero-Knowledge)
       setStatus('decrypting');
-      const decryptedFile = await decryptFile(encryptedBlob, cleanKey, `recovered-${cleanBlobId.slice(0, 8)}`);
+      const { file: decryptedFile, integrityVerified: isVerified } = await decryptFile(encryptedBlob, cleanKey, `recovered-${cleanBlobId.slice(0, 8)}`);
+      setIntegrityVerified(isVerified);
 
       setStatus('reconstructing');
       // 3. Trigger Browser Download
@@ -177,7 +178,9 @@ export const RecoveryBlock = () => {
               <div className="space-y-4">
                 <div className="flex justify-between items-center px-6">
                   <label className="block text-[10px] font-black uppercase tracking-[0.4em] text-white/30">Blob Identifier</label>
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-[9px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">Import .walblob</button>
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">
+                    <Upload className="w-3 h-3" /> Select Package
+                  </button>
                   <input type="file" accept=".walblob" ref={fileInputRef} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if(f) handlePackageImport(f); }} />
                 </div>
                 <div className="relative">
@@ -207,10 +210,36 @@ export const RecoveryBlock = () => {
               </div>
             </div>
 
+            {importedMeta && (
+              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 px-6 py-3 rounded-xl bg-white/5 border border-white/5 w-fit">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Ready to recover: <span className="text-white">{importedMeta}</span></span>
+                <button type="button" onClick={() => setImportedMeta(null)} className="ml-2 text-white/20 hover:text-white transition-colors uppercase text-[8px] font-black">Clear</button>
+              </motion.div>
+            )}
+
             {error && (
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-5 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center gap-4">
                 <ShieldAlert className="w-5 h-5 text-red-400" />
                 <div className="text-[10px] font-black text-red-400 uppercase tracking-widest">{error}</div>
+              </motion.div>
+            )}
+
+            {integrityVerified !== null && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                className={cn(
+                  "p-4 rounded-xl border flex items-center gap-3 justify-center",
+                  integrityVerified 
+                    ? "bg-emerald-400/10 border-emerald-400/20 text-emerald-400" 
+                    : "bg-red-400/10 border-red-400/20 text-red-400"
+                )}
+              >
+                {integrityVerified ? <CheckCircle2 className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                  {integrityVerified ? 'Integrity Verified' : 'Integrity Check Failed'}
+                </span>
               </motion.div>
             )}
 

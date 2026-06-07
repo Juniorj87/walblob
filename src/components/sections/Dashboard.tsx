@@ -1,9 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Database, Share2, Lock, UploadCloud, Zap, HelpCircle, 
-  Loader2, Copy, ShieldCheck, Check,
-  Globe, Shield, Fingerprint, ZapIcon, FileText, Key,
-  Download, QrCode as QrIcon, Trash2, Plus
+  Loader2, ShieldCheck,
+  Globe, Shield, Fingerprint, ZapIcon, FileText,
+  Download, QrCode as QrIcon, Trash2, Plus, Info
 } from 'lucide-react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import QRCode from 'qrcode';
@@ -17,10 +17,24 @@ import { Header } from '../ui/Header';
 import { OrbitalParticles } from '../animations/OrbitalParticles';
 import { RecoveryBlock } from './RecoveryBlock';
 import { RecoveryGuide } from './RecoveryGuide';
+import { Explorer } from './Explorer';
+import { CopyButton } from '../ui/CopyButton';
+import { FilePreview } from '../ui/FilePreview';
+import { calculateHash } from '../../utils/hash';
+import { useNetwork } from '../../context/NetworkContext';
+import { UploadAnalyticsCard } from '../ui/UploadAnalyticsCard';
+import { SecurityModelSection } from './SecurityModelSection';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+const RETENTION_OPTIONS = [
+  { label: '14 Days', days: 14 },
+  { label: '30 Days', days: 30 },
+  { label: '90 Days', days: 90 },
+  { label: '180 Days', days: 180 },
+];
 
 interface UploadQueueItem {
   id: string;
@@ -28,6 +42,12 @@ interface UploadQueueItem {
   status: 'pending' | 'encrypting' | 'uploading' | 'success' | 'error';
   progress: number;
   result?: { blobId: string; key: string; url: string };
+  analytics?: {
+    size: string;
+    time: string;
+    speed: string;
+    network: string;
+  };
   error?: string;
 }
 
@@ -58,20 +78,17 @@ const SectionTitle = ({ children, subtitle, align = "center" }: { children: Reac
   </motion.div>
 );
 
-const TrustBadge = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex items-center gap-3 px-5 py-3 rounded-full bg-white/5 border border-white/5 text-[11px] font-black uppercase tracking-widest text-white/80 backdrop-blur-md transition-all hover:bg-white/10 hover:border-white/20">
-    <Check className="w-4 h-4 text-emerald-400" /> {children}
-  </div>
-);
-
 export default function Dashboard() {
   const [queue, setQueue] = useState<UploadQueueItem[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[] | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [retention, setRetention] = useState(30);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [retentionDays, setRetentionDays] = useState(30);
   const [showQR, setShowQR] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadStartTimeRef = useRef<number>(0);
+  
+  const { network } = useNetwork();
 
   useEffect(() => {
     if (showQR) {
@@ -93,6 +110,14 @@ export default function Dashboard() {
     setQueue(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
   }, []);
 
+  const formatSize = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   const processQueue = useCallback(async () => {
     const pending = queue.find(item => item.status === 'pending');
     if (!pending) return;
@@ -105,12 +130,29 @@ export default function Dashboard() {
       
       // 2. Upload
       updateItem(pending.id, { status: 'uploading' });
+      uploadStartTimeRef.current = Date.now();
+      
       const encryptedFile = new File([encryptedBlob], pending.file.name, { type: pending.file.type });
-      const result = await publishBlob(encryptedFile, Math.ceil(retention / 30));
+      
+      // Internal conversion: 30 days = 1 epoch
+      const epochs = Math.max(1, Math.ceil(retentionDays / 30));
+      const result = await publishBlob(encryptedFile, epochs);
 
       if (result) {
         const finalResult = { ...result, key };
-        updateItem(pending.id, { status: 'success', result: finalResult, progress: 100 });
+        const duration = (Date.now() - uploadStartTimeRef.current) / 1000;
+        
+        updateItem(pending.id, { 
+          status: 'success', 
+          result: finalResult, 
+          progress: 100,
+          analytics: {
+            size: formatSize(pending.file.size),
+            time: duration > 60 ? `${(duration / 60).toFixed(1)}m` : `${duration.toFixed(1)}s`,
+            speed: stats?.speed || 'Fast',
+            network: network.toUpperCase()
+          }
+        });
         
         // 3. Save to History
         historyService.save({
@@ -125,7 +167,7 @@ export default function Dashboard() {
       const errorMessage = err instanceof Error ? err.message : 'Processing failed';
       updateItem(pending.id, { status: 'error', error: errorMessage });
     }
-  }, [queue, publishBlob, retention, updateItem]);
+  }, [queue, publishBlob, retentionDays, updateItem, stats, network]);
 
   useEffect(() => {
     const active = queue.some(item => item.status === 'encrypting' || item.status === 'uploading');
@@ -138,19 +180,29 @@ export default function Dashboard() {
     }
   }, [queue, processQueue]);
 
-  const handleFiles = (selectedFiles: FileList | null) => {
+  const handleFiles = (files: FileList | null) => {
+    if (!files) return;
+    setSelectedFiles(Array.from(files));
+  };
+
+  const confirmAndUpload = () => {
     if (!selectedFiles) return;
-    const newItems: UploadQueueItem[] = Array.from(selectedFiles).map(f => ({
+    const newItems: UploadQueueItem[] = selectedFiles.map(f => ({
       id: Math.random().toString(36).slice(2, 11),
       file: f,
       status: 'pending',
       progress: 0
     }));
     setQueue(prev => [...prev, ...newItems]);
+    setSelectedFiles(null);
   };
 
-  const downloadRecoveryPackage = (item: UploadQueueItem) => {
+  const downloadRecoveryPackage = async (item: UploadQueueItem) => {
     if (!item.result) return;
+    
+    // Calculate hash of original file for the package (P8)
+    const fileHash = await calculateHash(item.file);
+    
     const nowTimestamp = new Date().getTime();
     const pkg = {
       blobId: item.result.blobId,
@@ -159,9 +211,10 @@ export default function Dashboard() {
         name: item.file.name,
         type: item.file.type,
         size: item.file.size,
-        uploadedAt: nowTimestamp
+        uploadedAt: nowTimestamp,
+        hash: fileHash
       },
-      version: '2.1.0'
+      version: '2.2.0'
     };
     
     const blob = new Blob([JSON.stringify(pkg, null, 2)], { type: 'application/json' });
@@ -173,20 +226,6 @@ export default function Dashboard() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
-
-  const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const formatSize = (bytes: number) => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   return (
@@ -240,14 +279,14 @@ export default function Dashboard() {
                     onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFiles(e.dataTransfer.files); }}
                     className={cn(
                       "relative group/drop cursor-pointer rounded-[36px] transition-all duration-700",
-                      queue.length === 0 ? "h-[450px] md:h-[550px] flex flex-col items-center justify-center" : "p-8",
+                      queue.length === 0 && !selectedFiles ? "h-[450px] md:h-[550px] flex flex-col items-center justify-center" : "p-8",
                       "bg-[#0D1121]/50 border-2 border-dashed",
                       isDragging ? "border-primary bg-primary/10" : "border-white/10 hover:border-white/20 hover:bg-[#0D1121]/80"
                     )}
                   >
                     <input type="file" multiple ref={fileInputRef} className="hidden" onChange={(e) => handleFiles(e.target.files)} />
                     
-                    {queue.length === 0 ? (
+                    {queue.length === 0 && !selectedFiles ? (
                       <div onClick={() => fileInputRef.current?.click()} className="relative z-10 flex flex-col items-center gap-8 md:gap-12 text-center w-full max-w-xl px-6">
                         <div className="relative">
                           <motion.div 
@@ -265,113 +304,163 @@ export default function Dashboard() {
                         </div>
                       </div>
                     ) : (
-                      <div className="space-y-6">
-                        <div className="flex justify-between items-center px-4">
-                           <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Upload Queue</h3>
-                           <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">
-                              <Plus className="w-4 h-4" /> Add Files
-                           </button>
-                        </div>
-                        
-                        <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-                           <AnimatePresence mode="popLayout">
-                              {queue.map((item) => (
-                                <motion.div 
-                                  key={item.id}
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  exit={{ opacity: 0, scale: 0.95 }}
-                                  className="bg-black/40 rounded-2xl border border-white/5 p-4 flex flex-col gap-4 group/item"
-                                >
-                                   <div className="flex items-center justify-between gap-4">
-                                      <div className="flex items-center gap-4 min-w-0">
-                                         <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-                                            {item.status === 'success' ? <ShieldCheck className="w-5 h-5 text-emerald-400" /> : <FileText className="w-5 h-5 text-white/20" />}
-                                         </div>
-                                         <div className="min-w-0">
-                                            <p className="text-xs font-bold text-white truncate max-w-[200px]">{item.file.name}</p>
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-white/20">{formatSize(item.file.size)} · {item.status}</p>
-                                         </div>
-                                      </div>
-                                      
-                                      <div className="flex items-center gap-3">
-                                         {(item.status === 'encrypting' || item.status === 'uploading') && (
-                                            <Loader2 className="w-4 h-4 text-primary animate-spin" />
-                                         )}
-                                         {item.status === 'success' && (
-                                            <div className="flex items-center gap-2">
-                                               <button onClick={() => downloadRecoveryPackage(item)} className="p-2 rounded-lg bg-emerald-400/10 text-emerald-400 hover:bg-emerald-400/20 transition-all" title="Download .walblob package">
-                                                  <Download className="w-4 h-4" />
-                                               </button>
-                                               <button onClick={() => setShowQR(item.result?.blobId || null)} className="p-2 rounded-lg bg-white/5 text-white/40 hover:text-white transition-all">
-                                                  <QrIcon className="w-4 h-4" />
-                                               </button>
-                                            </div>
-                                         )}
-                                         <button 
-                                           onClick={() => setQueue(prev => prev.filter(i => i.id !== item.id))}
-                                           className="p-2 rounded-lg bg-white/5 text-white/20 hover:text-red-400 transition-all opacity-0 group-hover/item:opacity-100"
-                                         >
-                                            <Trash2 className="w-4 h-4" />
-                                         </button>
-                                      </div>
-                                   </div>
+                      <div className="space-y-10">
+                        {selectedFiles && (
+                           <div className="space-y-8">
+                              <div className="flex justify-between items-center px-4">
+                                 <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Selection Preview</h3>
+                                 <button onClick={() => setSelectedFiles(null)} className="text-[10px] font-black uppercase tracking-widest text-red-400/40 hover:text-red-400 transition-colors">Cancel</button>
+                              </div>
+                              <div className="space-y-4">
+                                 {selectedFiles.map((file, i) => (
+                                    <FilePreview key={i} file={file} />
+                                 ))}
+                              </div>
 
-                                   {item.status === 'uploading' && stats && (
-                                      <div className="space-y-2 px-2">
-                                         <div className="h-0.5 w-full bg-white/5 rounded-full overflow-hidden">
-                                            <motion.div initial={{ width: 0 }} animate={{ width: `${stats.percentage}%` }} className="h-full bg-primary" />
-                                         </div>
-                                         <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-white/30">
-                                            <span>{stats.speed}</span>
-                                            <span>{stats.remaining} left</span>
-                                         </div>
-                                      </div>
-                                   )}
+                              <div className="bg-black/40 rounded-3xl border border-white/5 p-8 flex flex-col md:flex-row items-center justify-between gap-8">
+                                 <div className="space-y-4 text-left w-full md:w-auto">
+                                    <div className="flex items-center gap-3">
+                                       <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30">Storage Duration</label>
+                                       <div className="group relative">
+                                          <Info className="w-3.5 h-3.5 text-white/20 cursor-help" />
+                                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-3 bg-black border border-white/10 rounded-xl text-[8px] font-bold text-white/60 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                                             Longer storage duration increases blob availability across the Walrus network.
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                       {RETENTION_OPTIONS.map((opt) => (
+                                          <button
+                                             key={opt.days}
+                                             onClick={() => setRetentionDays(opt.days)}
+                                             className={cn(
+                                                "px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                                                retentionDays === opt.days 
+                                                   ? "bg-primary text-black" 
+                                                   : "bg-white/5 text-white/40 border border-white/5 hover:border-white/10"
+                                             )}
+                                          >
+                                             {opt.label}
+                                          </button>
+                                       ))}
+                                    </div>
+                                 </div>
 
-                                   {item.result && (
-                                      <div className="grid grid-cols-2 gap-2 mt-2 pt-4 border-t border-white/5">
-                                         <div className="bg-black/40 p-2 rounded-lg border border-white/5 flex justify-between items-center group/sub">
-                                            <p className="text-[8px] font-mono text-white/20 truncate pr-2">{item.result.blobId}</p>
-                                            <button onClick={() => copyToClipboard(item.result!.blobId, item.id + 'id')} className="shrink-0 text-white/20 hover:text-primary transition-all">
-                                               {copiedId === item.id + 'id' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                                            </button>
-                                         </div>
-                                         <div className="bg-black/40 p-2 rounded-lg border border-white/5 flex justify-between items-center group/sub">
-                                            <p className="text-[8px] font-mono text-white/20 truncate pr-2">{item.result.key}</p>
-                                            <button onClick={() => copyToClipboard(item.result!.key, item.id + 'key')} className="shrink-0 text-white/20 hover:text-primary transition-all">
-                                               {copiedId === item.id + 'key' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                                            </button>
-                                         </div>
-                                      </div>
-                                   )}
-                                </motion.div>
-                              ))}
-                           </AnimatePresence>
-                        </div>
-
-                        <div className="pt-6 border-t border-white/5 flex justify-between items-center px-4">
-                           <div className="flex items-center gap-6">
-                              <select 
-                                value={retention}
-                                onChange={(e) => setRetention(Number(e.target.value))}
-                                className="bg-transparent text-[10px] font-black uppercase tracking-widest text-white/40 outline-none cursor-pointer hover:text-white transition-all"
-                              >
-                                 <option className="bg-[#050816]" value={30}>30 Days</option>
-                                 <option className="bg-[#050816]" value={365}>1 Year</option>
-                                 <option className="bg-[#050816]" value={3650}>Permanent</option>
-                              </select>
-                              <div className="text-[10px] font-black uppercase tracking-widest text-white/20 flex items-center gap-2">
-                                 <Shield className="w-3.5 h-3.5" /> AES-256 GCM
+                                 <button 
+                                    onClick={confirmAndUpload}
+                                    className="w-full md:w-auto px-12 py-6 rounded-pill bg-white text-black font-black text-[12px] uppercase tracking-[0.4em] hover:scale-[1.05] active:scale-[0.95] transition-all shadow-[0_20px_40px_rgba(255,255,255,0.1)] flex items-center justify-center gap-4"
+                                 >
+                                    <Lock className="w-5 h-5" /> Confirm & Seal
+                                 </button>
                               </div>
                            </div>
-                           <button 
-                             onClick={() => setQueue([])}
-                             className="text-[10px] font-black uppercase tracking-widest text-red-400/40 hover:text-red-400 transition-colors"
-                           >
-                              Clear Queue
-                           </button>
-                        </div>
+                        )}
+
+                        {queue.length > 0 && (
+                           <div className="space-y-6 pt-10 border-t border-white/5">
+                              <div className="flex justify-between items-center px-4">
+                                 <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Upload Queue</h3>
+                                 <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">
+                                    <Plus className="w-4 h-4" /> Add More
+                                 </button>
+                              </div>
+                              
+                              <div className="space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
+                                 <AnimatePresence mode="popLayout">
+                                    {queue.map((item) => (
+                                    <motion.div 
+                                       key={item.id}
+                                       initial={{ opacity: 0, x: -10 }}
+                                       animate={{ opacity: 1, x: 0 }}
+                                       exit={{ opacity: 0, scale: 0.95 }}
+                                       className="bg-black/40 rounded-2xl border border-white/5 p-4 flex flex-col gap-4 group/item"
+                                    >
+                                       <div className="flex items-center justify-between gap-4">
+                                          <div className="flex items-center gap-4 min-w-0">
+                                             <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+                                                {item.status === 'success' ? <ShieldCheck className="w-5 h-5 text-emerald-400" /> : <FileText className="w-5 h-5 text-white/20" />}
+                                             </div>
+                                             <div className="min-w-0">
+                                                <p className="text-xs font-bold text-white truncate max-w-[200px]">{item.file.name}</p>
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-white/20">{formatSize(item.file.size)} · {item.status}</p>
+                                             </div>
+                                          </div>
+                                          
+                                          <div className="flex items-center gap-3">
+                                             {(item.status === 'encrypting' || item.status === 'uploading') && (
+                                                <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                                             )}
+                                             {item.status === 'success' && (
+                                                <div className="flex items-center gap-2">
+                                                   <button onClick={() => downloadRecoveryPackage(item)} className="p-2 rounded-lg bg-emerald-400/10 text-emerald-400 hover:bg-emerald-400/20 transition-all" title="Download .walblob package">
+                                                      <Download className="w-4 h-4" />
+                                                   </button>
+                                                   <button onClick={() => setShowQR(item.result?.blobId || null)} className="p-2 rounded-lg bg-white/5 text-white/40 hover:text-white transition-all">
+                                                      <QrIcon className="w-4 h-4" />
+                                                   </button>
+                                                </div>
+                                             )}
+                                             <button 
+                                                onClick={() => setQueue(prev => prev.filter(i => i.id !== item.id))}
+                                                className="p-2 rounded-lg bg-white/5 text-white/20 hover:text-red-400 transition-all opacity-0 group-hover/item:opacity-100"
+                                             >
+                                                <Trash2 className="w-4 h-4" />
+                                             </button>
+                                          </div>
+                                       </div>
+
+                                       {item.status === 'uploading' && stats && (
+                                          <div className="space-y-2 px-2">
+                                             <div className="h-0.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                                <motion.div initial={{ width: 0 }} animate={{ width: `${stats.percentage}%` }} className="h-full bg-primary" />
+                                             </div>
+                                             <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-white/30">
+                                                <span>{stats.speed}</span>
+                                                <span>{stats.remaining} left</span>
+                                             </div>
+                                          </div>
+                                       )}
+
+                                       {item.status === 'success' && item.analytics && (
+                                          <UploadAnalyticsCard 
+                                             size={item.analytics.size}
+                                             time={item.analytics.time}
+                                             speed={item.analytics.speed}
+                                             network={item.analytics.network}
+                                             className="mt-2"
+                                          />
+                                       )}
+
+                                       {item.result && (
+                                          <div className="grid grid-cols-2 gap-2 mt-2 pt-4 border-t border-white/5">
+                                             <div className="bg-black/40 p-2 rounded-lg border border-white/5 flex justify-between items-center group/sub">
+                                                <p className="text-[8px] font-mono text-white/20 truncate pr-2">{item.result.blobId}</p>
+                                                <CopyButton text={item.result.blobId} className="bg-transparent border-none p-1" />
+                                             </div>
+                                             <div className="bg-black/40 p-2 rounded-lg border border-white/5 flex justify-between items-center group/sub">
+                                                <p className="text-[8px] font-mono text-white/20 truncate pr-2">{item.result.key}</p>
+                                                <CopyButton text={item.result.key} className="bg-transparent border-none p-1" />
+                                             </div>
+                                          </div>
+                                       )}
+                                    </motion.div>
+                                    ))}
+                                 </AnimatePresence>
+                              </div>
+
+                              <div className="pt-6 border-t border-white/5 flex justify-between items-center px-4">
+                                 <div className="text-[10px] font-black uppercase tracking-widest text-white/20 flex items-center gap-2">
+                                    <Shield className="w-3.5 h-3.5" /> AES-256 GCM
+                                 </div>
+                                 <button 
+                                    onClick={() => setQueue([])}
+                                    className="text-[10px] font-black uppercase tracking-widest text-red-400/40 hover:text-red-400 transition-colors"
+                                 >
+                                    Clear Queue
+                                 </button>
+                              </div>
+                           </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -400,103 +489,15 @@ export default function Dashboard() {
 
       <main className="max-w-[1440px] mx-auto px-6 md:px-10 space-y-40 md:space-y-80 pb-40 md:pb-80 relative z-10">
         
-        {/* LOCAL HISTORY SECTION (Priority 6) */}
         <UploadHistory />
 
-        {/* STANDALONE RECOVERY SECTION */}
+        <Explorer />
+
         <RecoveryBlock />
 
-        {/* HOW RECOVERY WORKS GUIDE (Priority 2) */}
         <RecoveryGuide />
 
-        {/* HOW WALBLOB PROTECTS YOUR FILES */}
-        <section className="scroll-mt-48">
-           <div className="grid lg:grid-cols-2 gap-16 md:gap-32 items-start">
-              <div className="space-y-16">
-                 <SectionTitle 
-                   subtitle="Your files are encrypted directly in your browser before leaving your device. WalBlob stores only encrypted data on Walrus, ensuring that only you control access to your information."
-                   align="left"
-                 >
-                   Encrypt. <br />
-                   Upload. <br />
-                   Share.
-                 </SectionTitle>
-                 
-                 <div className="flex flex-col gap-5">
-                    <TrustBadge>Client-side Encryption</TrustBadge>
-                    <TrustBadge>Decentralized Walrus Storage</TrustBadge>
-                    <TrustBadge>You Control The Keys</TrustBadge>
-                 </div>
-              </div>
-
-              <div className="relative space-y-8">
-                 {/* Visual Flow Diagram */}
-                 {[
-                   { step: 1, title: 'FILE', icon: FileText, desc: 'Select any file up to the supported size limit.', color: 'white' },
-                   { step: 2, title: 'AES-256 ENCRYPTION', icon: Lock, desc: 'The file is encrypted locally in your browser before upload.', color: 'primary', glow: true },
-                   { step: 3, title: 'ENCRYPTED BLOB', icon: Database, desc: 'The original content becomes unreadable encrypted data.', color: 'secondary', floating: true },
-                   { step: 4, title: 'WALRUS STORAGE', icon: Globe, desc: 'The encrypted blob is distributed and stored on the Walrus network.', color: 'primary', nodes: true },
-                   { step: 5, title: 'PRIVATE ACCESS', icon: Key, desc: 'Only the holder of the decryption key can access the original file.', color: 'emerald-400', glow: true, emerald: true }
-                 ].map((item, i) => (
-                   <motion.div 
-                     key={i}
-                     initial={{ opacity: 0, x: 20 }}
-                     whileInView={{ opacity: 1, x: 0 }}
-                     viewport={{ once: true }}
-                     transition={{ delay: i * 0.1 }}
-                     className="relative"
-                   >
-                     <div className={cn(
-                        "flex items-center gap-8 p-8 rounded-[32px] border transition-all duration-700 backdrop-blur-3xl group/step",
-                        item.glow && i === 1 ? "bg-primary/5 border-primary/20 shadow-[0_0_50px_rgba(0,209,255,0.1)]" : 
-                        item.emerald ? "bg-emerald-400/5 border-emerald-400/20 shadow-[0_0_50px_rgba(52,211,153,0.1)]" :
-                        "bg-white/5 border-white/10"
-                     )}>
-                        <div className={cn(
-                          "w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-2xl relative overflow-hidden",
-                          item.color === 'primary' ? "bg-primary/20 text-primary" : 
-                          item.color === 'secondary' ? "bg-secondary/20 text-secondary" :
-                          item.color === 'emerald-400' ? "bg-emerald-400/20 text-emerald-400" :
-                          "bg-white/10 text-white"
-                        )}>
-                           <item.icon className="w-8 h-8 relative z-10" />
-                           {item.floating && <div className="absolute inset-0 bg-secondary/10 animate-pulse" />}
-                        </div>
-                        <div className="space-y-2 text-left">
-                           <div className="flex items-center gap-3">
-                              <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Step 0{item.step}</span>
-                              <h4 className="text-sm font-black uppercase tracking-[0.2em] text-white tracking-widest">{item.title}</h4>
-                           </div>
-                           <p className="text-text-muted text-sm font-medium leading-relaxed opacity-60 group-hover/step:opacity-100 transition-opacity">{item.desc}</p>
-                        </div>
-                     </div>
-                     {i < 4 && (
-                       <div className="flex justify-center py-2 h-8">
-                          <motion.div 
-                            animate={{ y: [0, 5, 0] }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                            className="w-px h-full bg-gradient-to-b from-white/20 to-transparent" 
-                          />
-                       </div>
-                     )}
-                   </motion.div>
-                 ))}
-
-                 {/* Zero-Knowledge Note */}
-                 <div className="mt-12 p-8 rounded-[32px] bg-emerald-400/5 border border-emerald-400/10 text-left relative overflow-hidden">
-                    <div className="relative z-10 space-y-3">
-                       <h5 className="text-emerald-400 text-xs font-black uppercase tracking-[0.4em] flex items-center gap-3">
-                         <ShieldCheck className="w-5 h-5" /> Zero-Knowledge Design
-                       </h5>
-                       <p className="text-text-muted text-sm font-medium leading-relaxed opacity-80">
-                         WalBlob never sees your original files, passwords, or encryption keys. Storage providers only receive encrypted blobs.
-                       </p>
-                    </div>
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/5 blur-3xl rounded-full translate-x-10 -translate-y-10" />
-                 </div>
-              </div>
-           </div>
-        </section>
+        <SecurityModelSection />
 
         <section id="security" className="scroll-mt-32 md:scroll-mt-48">
           <SectionTitle subtitle="Walrus technology distributes data across independent nodes for maximum reliability.">Network Reliability</SectionTitle>
@@ -556,15 +557,17 @@ export default function Dashboard() {
           <SectionTitle subtitle="Frequently asked questions about technology and security.">FAQ</SectionTitle>
           <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
              {[
-               { q: 'How secure is it?', a: 'Your file is encrypted in the browser using AES-256. We never gain access to your content or keys. Security is mathematically guaranteed.' },
-               { q: 'What is Walrus?', a: 'It is a decentralized storage network from Mysten Labs that fragments files and distributes them among independent validators.' },
-               { q: 'How to recover a file?', a: 'You need to save the Blob ID and Encryption Key. With them, you can retrieve your file via WalBlob or any other Walrus explorer.' },
-               { q: 'What is the storage price?', a: 'The cost depends on current Walrus network parameters and retention period. Payment occurs once at the time of data recording.' }
+               { q: 'How secure is WalBlob?', a: 'Your file is encrypted locally in your browser using AES-256 GCM before it ever leaves your device. We never see your content, passwords, or encryption keys. The security is mathematically guaranteed by client-side cryptography.' },
+               { q: 'What is the "Walrus" network?', a: 'Walrus is a decentralized storage protocol from Mysten Labs. It fragments your encrypted data and distributes it across a global network of independent nodes, ensuring your data is always available and resistant to censorship.' },
+               { q: 'How do I recover my files?', a: 'You must save the Blob ID and Decryption Key provided after upload. We recommend downloading the .walblob recovery package. Without these two pieces of information, your data is permanently inaccessible even to us.' },
+               { q: 'Can I delete my files?', a: 'Files on Walrus are stored for the duration you selected (retention period). Once that period expires, the network shards are no longer guaranteed to be stored by nodes. WalBlob does not currently support manual deletion due to the immutable nature of the shards.' },
+               { q: 'Is there a file size limit?', a: 'WalBlob supports files up to 2GB in the current v2.2-Stable release. Larger files may require longer processing times for client-side encryption and network sharding.' },
+               { q: 'What happens if WalBlob goes down?', a: 'WalBlob is just an interface. Since your data is on the decentralized Walrus network and you have your decryption key, you can use any other Walrus explorer or utility to recover your data.' }
              ].map((item, i) => (
                <motion.div 
                  key={i}
                  initial={{ opacity: 0, x: -20 }}
-                 whileInView={{ opacity: 1, x: 0 }}
+                 whileInView={{ opacity: 1, y: 0 }}
                  viewport={{ once: true }}
                  transition={{ delay: i * 0.1 }}
                >
@@ -591,35 +594,40 @@ export default function Dashboard() {
                    <div className="w-12 h-12 md:w-14 md:h-14 bg-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-2xl text-center">
                      <Database className="w-7 h-7 md:w-8 md:h-8 text-black mx-auto" />
                    </div>
-                   <span className="text-2xl md:text-3xl font-display font-black tracking-tighter uppercase text-white tracking-[0.2em]">WalBlob</span>
+                   <div className="flex flex-col">
+                      <span className="text-2xl md:text-3xl font-display font-black tracking-tighter uppercase text-white tracking-[0.2em]">WalBlob</span>
+                      <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mt-1">Version 2.2.0-Stable</span>
+                   </div>
                  </div>
                  <p className="text-white/30 text-xl md:text-2xl font-light max-w-sm leading-relaxed italic">
-                   "A new standard for privacy in a decentralized world."
+                   "Redefining data sovereignty in the decentralized era."
                  </p>
               </div>
               
               <div className="space-y-8 md:space-y-12">
-                 <h6 className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.5em] md:tracking-[0.6em] text-white/20 uppercase tracking-widest">Ecosystem</h6>
+                 <h6 className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.5em] md:tracking-[0.6em] text-white/20 uppercase tracking-widest">Protocol</h6>
                  <ul className="space-y-6 md:space-y-8 text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] text-text-muted">
-                    <li><a href="/docs" className="hover:text-white transition-all hover:translate-x-1 inline-block">Documentation</a></li>
-                    <li><a href="https://github.com/Juniorj87/walblob" target="_blank" rel="noreferrer" className="hover:text-white transition-all hover:translate-x-1 inline-block">GitHub / Source</a></li>
-                    <li><a href="/status" className="hover:text-white transition-all hover:translate-x-1 inline-block">Network Status</a></li>
+                    <li><a href="/docs" className="hover:text-white transition-all hover:translate-x-1 inline-block">Technical Docs</a></li>
+                    <li><a href="https://github.com/Juniorj87/walblob" target="_blank" rel="noreferrer" className="hover:text-white transition-all hover:translate-x-1 inline-block">Source Code</a></li>
+                    <li><a href="/status" className="hover:text-white transition-all hover:translate-x-1 inline-block">Network Health</a></li>
+                    <li><a href="https://walrus.xyz" target="_blank" rel="noreferrer" className="hover:text-white transition-all hover:translate-x-1 inline-block text-primary">About Walrus</a></li>
                  </ul>
               </div>
 
               <div className="space-y-8 md:space-y-12">
-                 <h6 className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.5em] md:tracking-[0.6em] text-white/20 uppercase tracking-widest">Community</h6>
+                 <h6 className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.5em] md:tracking-[0.6em] text-white/20 uppercase tracking-widest">Connect</h6>
                  <ul className="space-y-6 md:space-y-8 text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] text-text-muted">
                     <li><a href="https://x.com/Soulpureaux" target="_blank" rel="noreferrer" className="hover:text-white transition-all hover:translate-x-1 inline-block">Twitter / X</a></li>
-                    <li><a href="/privacy" className="hover:text-white transition-all hover:translate-x-1 inline-block">Privacy</a></li>
+                    <li><a href="/privacy" className="hover:text-white transition-all hover:translate-x-1 inline-block">Privacy Policy</a></li>
+                    <li><a href="/retrieve" className="hover:text-white transition-all hover:translate-x-1 inline-block">Retrieve Files</a></li>
                  </ul>
               </div>
            </div>
            
            <div className="flex flex-col md:flex-row justify-between items-center gap-10 md:gap-14 pt-16 md:pt-20 border-t border-white/5">
-              <p className="text-[10px] md:text-[11px] font-black text-white/10 uppercase tracking-[0.6em] md:tracking-[0.8em] text-center md:text-left">© 2026 WALBLOB · BUILT ON SUI & WALRUS</p>
+              <p className="text-[10px] md:text-[11px] font-black text-white/10 uppercase tracking-[0.6em] md:tracking-[0.8em] text-center md:text-left">© 2026 WALBLOB · POWERED BY MYSTEN LABS WALRUS</p>
               <div className="flex items-center gap-4 md:gap-6 text-white/20 text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.5em] bg-white/5 px-6 py-2.5 md:px-8 md:py-3 rounded-full border border-white/5">
-                <Globe className="w-4 h-4 md:w-5 md:h-5" /> Global Distributed Layer
+                <Globe className="w-4 h-4 md:w-5 md:h-5" /> Distributed Storage Protocol
               </div>
            </div>
         </div>

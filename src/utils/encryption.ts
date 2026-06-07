@@ -9,24 +9,28 @@
  */
 
 import { packFileWithMetadata } from './metadata';
+import { calculateHash } from './hash';
 
 export async function encryptFile(file: File, withMetadata: boolean = false): Promise<{ encryptedBlob: Blob; key: string }> {
-  // Generate a cryptographically strong 256-bit AES-GCM key
+  // 1. Calculate Original File Hash (P8: Integrity Verification)
+  const fileHash = await calculateHash(file);
+
+  // 2. Generate a cryptographically strong 256-bit AES-GCM key
   const key = await window.crypto.subtle.generateKey(
     { name: 'AES-GCM', length: 256 },
     true, // Key must be extractable to show to user for manual recovery
     ['encrypt', 'decrypt']
   );
 
-  // GCM recommended IV size is 12 bytes for optimal security/performance
+  // 3. GCM recommended IV size is 12 bytes for optimal security/performance
   const iv = window.crypto.getRandomValues(new Uint8Array(12));
   
-  // Package with metadata if requested (V2.1+)
+  // 4. Package with metadata if requested (V2.1+)
   const dataToEncrypt = withMetadata 
-    ? await packFileWithMetadata(file) 
+    ? await packFileWithMetadata(file, fileHash) 
     : await file.arrayBuffer();
 
-  // Perform client-side encryption
+  // 5. Perform client-side encryption
   const encryptedBuffer = await window.crypto.subtle.encrypt(
     { name: 'AES-GCM', iv },
     key,

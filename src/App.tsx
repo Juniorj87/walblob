@@ -4,6 +4,7 @@ import '@mysten/dapp-kit/dist/index.css';
 import Dashboard from './components/sections/Dashboard';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
+import { NetworkProvider } from './context/NetworkContext';
 
 // Lazy load secondary sections for performance (Priority 6)
 const Docs = lazy(() => import('./components/sections/Docs'));
@@ -67,15 +68,17 @@ function App() {
 		<QueryClientProvider client={queryClient}>
 			<SuiClientProvider networks={networkConfig} defaultNetwork="mainnet">
 				<WalletProvider autoConnect>
-					<div className="bg-[#050816] min-h-screen text-white font-sans selection:bg-cyan-500/30">
-            <Suspense fallback={<LoadingFallback />}>
-              {path === '/docs' && <Docs />}
-              {path === '/privacy' && <Privacy />}
-              {path === '/status' && <Status />}
-              {path === '/retrieve' && <Retrieve />}
-              {(path === '/' || !['/docs', '/privacy', '/status', '/retrieve'].includes(path)) && <Dashboard />}
-            </Suspense>
-					</div>
+					<NetworkProvider>
+						<div className="bg-[#050816] min-h-screen text-white font-sans selection:bg-cyan-500/30">
+							<Suspense fallback={<LoadingFallback />}>
+								{path === '/docs' && <Docs />}
+								{path === '/privacy' && <Privacy />}
+								{path === '/status' && <Status />}
+								{path === '/retrieve' && <Retrieve />}
+								{(path === '/' || !['/docs', '/privacy', '/status', '/retrieve'].includes(path)) && <Dashboard />}
+							</Suspense>
+						</div>
+					</NetworkProvider>
 				</WalletProvider>
 			</SuiClientProvider>
 		</QueryClientProvider>
