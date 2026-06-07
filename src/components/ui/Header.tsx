@@ -30,7 +30,7 @@ export const Header = () => {
           {/* Logo */}
           <a href="/" className="flex items-center gap-3 group">
             <img 
-              src="/walblob-logo.png" 
+              src="/walblob-logo.png?v=1" 
               alt="WalBlob Logo" 
               className="h-8 md:h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-500" 
             />

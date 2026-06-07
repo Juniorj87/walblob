@@ -8,7 +8,7 @@ export const Footer = () => {
           <div className="col-span-1 md:col-span-2 space-y-12">
             <div className="flex items-center gap-4">
               <img 
-                src="/walblob-logo.png" 
+                src="/walblob-logo.png?v=1" 
                 alt="WalBlob Logo" 
                 className="h-12 w-auto object-contain" 
               />
