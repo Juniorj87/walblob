@@ -18,7 +18,13 @@ WalBlob is a client-side frontend. The security model assumes:
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability within this project, please send an e-mail to security@walblob.com (placeholder). All security vulnerabilities will be promptly addressed.
+If you discover a security vulnerability within this project, please **do not open a public issue**. Instead, please use the **GitHub Security Advisories** feature to report the vulnerability privately.
+
+1. Navigate to the **Security** tab of this repository.
+2. Click on **Advisories** in the left sidebar.
+3. Click **Report a vulnerability** to start a private draft advisory.
+
+Alternatively, you can contact the maintainers directly through GitHub. All security vulnerabilities will be promptly addressed.
 
 Please include:
 - A description of the vulnerability.
