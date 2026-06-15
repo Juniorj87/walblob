@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Copy, Check, Search, 
-  Trash2, Clock, FileText
+import {
+  Copy, Check, Search,
+  Trash2, Clock, FileText, Terminal
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { historyService, type HistoryItem } from '../../utils/history';
@@ -46,92 +46,112 @@ export const UploadHistory = () => {
   if (history.length === 0) return null;
 
   return (
-    <div id="history" className="w-full">
-      <div className="max-w-5xl mx-auto">
-        <div className="glass-effect rounded-[40px] premium-shadow border border-white/5 overflow-hidden">
-          <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-white/5 bg-white/[0.01]">
-                  <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">Identifier</th>
-                  <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 hidden md:table-cell">Size</th>
-                  <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 hidden lg:table-cell">Timestamp</th>
-                  <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                <AnimatePresence mode="popLayout">
-                  {history.map((item) => (
-                    <motion.tr 
-                      key={item.blobId}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0, scale: 0.98 }}
-                      className="group hover:bg-white/[0.02] transition-colors"
-                    >
-                      <td className="px-10 py-8">
-                        <div className="flex items-center gap-6">
-                          <div className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center shrink-0 text-white/20 group-hover:text-primary group-hover:border-primary/20 transition-all">
-                            <FileText className="w-6 h-6" />
-                          </div>
-                          <div className="min-w-0 space-y-1.5">
-                            <p className="text-sm font-bold text-white truncate max-w-[200px] md:max-w-xs">{item.name}</p>
-                            <p className="text-[11px] font-mono text-white/20 truncate max-w-[150px]">{item.blobId}</p>
-                          </div>
+    <div className="terminal-window rounded-xl">
+      {/* Terminal Header */}
+      <div className="terminal-header px-4 py-2.5 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="terminal-dot bg-secondary/80" />
+          <div className="terminal-dot bg-accent/80" />
+          <div className="terminal-dot bg-primary/80" />
+        </div>
+        <div className="text-[10px] font-mono text-text-muted">walblob history</div>
+        <div className="w-16" />
+      </div>
+
+      {/* Terminal Body */}
+      <div className="p-4 md:p-6">
+        {/* Command Header */}
+        <div className="flex items-center gap-2 text-[11px] font-mono text-text-muted mb-4">
+          <span className="text-primary">$</span>
+          <span className="text-accent">walblob</span>
+          <span>history --list --format=detailed</span>
+        </div>
+
+        {/* History Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-border-subtle">
+                <th className="pb-2 text-[9px] font-mono text-text-muted uppercase tracking-wider">File</th>
+                <th className="pb-2 text-[9px] font-mono text-text-muted uppercase tracking-wider hidden md:table-cell">Size</th>
+                <th className="pb-2 text-[9px] font-mono text-text-muted uppercase tracking-wider hidden lg:table-cell">Time</th>
+                <th className="pb-2 text-[9px] font-mono text-text-muted uppercase tracking-wider text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence mode="popLayout">
+                {history.map((item) => (
+                  <motion.tr
+                    key={item.blobId}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    className="border-b border-border-subtle/50 last:border-none group"
+                  >
+                    <td className="py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                          <FileText className="w-4 h-4 text-primary" />
                         </div>
-                      </td>
-                      <td className="px-10 py-8 hidden md:table-cell">
-                        <span className="text-xs font-bold text-text-dim">{formatSize(item.size)}</span>
-                      </td>
-                      <td className="px-10 py-8 hidden lg:table-cell">
-                        <div className="flex items-center gap-2 text-xs font-bold text-text-dim">
-                          <Clock className="w-3.5 h-3.5 opacity-30" />
-                          {formatTime(item.uploadedAt)}
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-white truncate max-w-[150px] md:max-w-[200px]">{item.name}</p>
+                          <p className="text-[10px] font-mono text-text-muted truncate max-w-[120px]">{item.blobId}</p>
                         </div>
-                      </td>
-                      <td className="px-10 py-8 text-right">
-                        <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
-                            onClick={() => copyId(item.blobId)}
-                            className="p-3 rounded-xl bg-white/5 hover:bg-primary/10 text-white/40 hover:text-primary transition-all active:scale-95"
-                            title="Copy Blob ID"
-                          >
-                            {copiedId === item.blobId ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                          </button>
-                          <a 
-                            href={`/retrieve?blob=${item.blobId}`}
-                            className="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all active:scale-95"
-                            title="Open in Recovery"
-                          >
-                            <Search className="w-4 h-4" />
-                          </a>
-                          <button 
-                            onClick={() => removeEntry(item.blobId)}
-                            className="p-3 rounded-xl bg-white/5 hover:bg-red-500/10 text-white/40 hover:text-red-400 transition-all active:scale-95"
-                            title="Remove from history"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
-              </tbody>
-            </table>
+                      </div>
+                    </td>
+                    <td className="py-3 hidden md:table-cell">
+                      <span className="text-[10px] font-mono text-text-muted">{formatSize(item.size)}</span>
+                    </td>
+                    <td className="py-3 hidden lg:table-cell">
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono text-text-muted">
+                        <Clock className="w-3 h-3 opacity-50" />
+                        {formatTime(item.uploadedAt)}
+                      </div>
+                    </td>
+                    <td className="py-3 text-right">
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => copyId(item.blobId)}
+                          className="p-1.5 rounded-md bg-background hover:bg-primary/10 text-text-muted hover:text-primary transition-all"
+                          title="Copy Blob ID"
+                        >
+                          {copiedId === item.blobId ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
+                        </button>
+                        <a
+                          href={`/retrieve?blob=${item.blobId}`}
+                          className="p-1.5 rounded-md bg-background hover:bg-white/10 text-text-muted hover:text-white transition-all"
+                          title="Open in Recovery"
+                        >
+                          <Search className="w-3.5 h-3.5" />
+                        </a>
+                        <button
+                          onClick={() => removeEntry(item.blobId)}
+                          className="p-1.5 rounded-md bg-background hover:bg-secondary/10 text-text-muted hover:text-secondary transition-all"
+                          title="Remove from history"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-4 pt-4 border-t border-border-subtle flex flex-col md:flex-row justify-between items-center gap-3">
+          <div className="flex items-center gap-2 text-[9px] font-mono text-text-muted">
+            <Terminal className="w-3 h-3" />
+            LocalStorage Registry · v3.0
           </div>
-          
-          <div className="p-10 bg-white/[0.01] border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
-            <p className="text-[10px] font-bold text-white/10 uppercase tracking-[0.3em]">
-              LocalStorage Registry · v3.0 Secure Audit
-            </p>
-            <button 
-              onClick={() => { if(confirm('Clear all local history?')) { historyService.clear(); setHistory([]); } }}
-              className="text-[10px] font-bold text-red-400/30 hover:text-red-400 uppercase tracking-[0.3em] transition-colors"
-            >
-              Wipe Local Vault
-            </button>
-          </div>
+          <button
+            onClick={() => { if (confirm('Clear all local history?')) { historyService.clear(); setHistory([]); } }}
+            className="text-[9px] font-mono text-secondary/50 hover:text-secondary uppercase tracking-wider transition-colors"
+          >
+            [clear-all]
+          </button>
         </div>
       </div>
     </div>

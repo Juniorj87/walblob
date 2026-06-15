@@ -2,43 +2,61 @@ import { motion } from 'framer-motion';
 
 export const PremiumBackground = () => {
   return (
-    <div className="fixed inset-0 -z-20 bg-[#020617] overflow-hidden">
+    <div className="fixed inset-0 -z-20 bg-background overflow-hidden">
       {/* Noise Texture */}
       <div className="noise-overlay" />
 
-      {/* Mesh Layer */}
-      <div className="absolute inset-0 mesh-bg-v3 opacity-60" />
-      
-      {/* Animated Glows */}
-      <motion.div 
-        animate={{ 
-          scale: [1, 1.3, 1],
-          opacity: [0.4, 0.6, 0.4],
-          x: [-50, 50, -50],
-          y: [-20, 20, -20]
-        }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-[-20%] left-[-10%] w-[80%] h-[80%] rounded-full bg-[#4F7CFF]/15 blur-[160px] pointer-events-none"
-      />
-      
-      <motion.div 
-        animate={{ 
-          scale: [1.3, 1, 1.3],
-          opacity: [0.3, 0.5, 0.3],
-          x: [50, -50, 50],
-          y: [20, -20, 20]
+      {/* Scanline Effect */}
+      <div className="scanline-overlay" />
+
+      {/* Grid Background */}
+      <div className="absolute inset-0 grid-bg opacity-50" />
+
+      {/* Hex Pattern */}
+      <div className="absolute inset-0 hex-pattern opacity-30" />
+
+      {/* Animated Glows - Reduced and more subtle */}
+      <motion.div
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.15, 0.25, 0.15],
+          x: [-20, 20, -20],
         }}
         transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] rounded-full bg-[#8B5CF6]/10 blur-[140px] pointer-events-none"
+        className="absolute top-[-10%] left-[-5%] w-[50%] h-[50%] rounded-full bg-primary/10 blur-[120px] pointer-events-none"
       />
 
-      <motion.div 
-        animate={{ 
-          opacity: [0.2, 0.4, 0.2],
+      <motion.div
+        animate={{
+          scale: [1.2, 1, 1.2],
+          opacity: [0.1, 0.15, 0.1],
+          x: [20, -20, 20],
         }}
-        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100%] h-[40%] bg-[#00D4FF]/5 blur-[120px] pointer-events-none rotate-12"
+        transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] rounded-full bg-secondary/8 blur-[100px] pointer-events-none"
       />
+
+      {/* Floating Particles */}
+      {[...Array(5)].map((_, i) => (
+        <motion.div
+          key={i}
+          animate={{
+            y: [0, -30, 0],
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{
+            duration: 4 + i * 2,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: i * 0.5,
+          }}
+          className="absolute w-1 h-1 rounded-full bg-primary/30"
+          style={{
+            left: `${20 + i * 15}%`,
+            top: `${30 + (i % 3) * 20}%`,
+          }}
+        />
+      ))}
     </div>
   );
 };

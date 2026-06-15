@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Key, Download, Loader2, ShieldCheck, 
-  Search, Lock, ShieldAlert, FileJson, 
+import {
+  Key, Download, Loader2, ShieldCheck,
+  Search, ShieldAlert,
   CheckCircle2, ExternalLink, Upload
 } from 'lucide-react';
 import { useState, useRef } from 'react';
@@ -22,12 +22,6 @@ const AGGREGATORS = [
   'https://aggregator-walrus-testnet.testnet.sui.io'
 ];
 
-const GlassCard = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
-  <div className={cn("glass-effect rounded-[32px] border border-white/5 premium-shadow overflow-hidden relative group/card", className)}>
-    {children}
-  </div>
-);
-
 type RecoveryStatus = 'idle' | 'downloading' | 'verifying' | 'decrypting' | 'reconstructing' | 'success' | 'error';
 
 export const RecoveryBlock = () => {
@@ -35,7 +29,6 @@ export const RecoveryBlock = () => {
   const [decryptionKey, setDecryptionKey] = useState('');
   const [status, setStatus] = useState<RecoveryStatus>('idle');
   const [error, setError] = useState<React.ReactNode | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [importedMeta, setImportedMeta] = useState<string | null>(null);
   const [integrityVerified, setIntegrityVerified] = useState<boolean | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,11 +58,9 @@ export const RecoveryBlock = () => {
 
     let encryptedBlob: Blob | null = null;
 
-    // Multi-Aggregator Fallback Strategy
     for (const baseUrl of AGGREGATORS) {
       try {
         if (import.meta.env.DEV) console.log(`Walrus: Trying aggregator ${baseUrl}`);
-        // Correct path is /v1/blobs/${id}
         const response = await fetch(`${baseUrl}/v1/blobs/${cleanBlobId}`, {
           mode: 'cors',
           cache: 'no-cache'
@@ -77,7 +68,7 @@ export const RecoveryBlock = () => {
 
         if (response.ok) {
           encryptedBlob = await response.blob();
-          if (encryptedBlob.size > 0) break; // Success!
+          if (encryptedBlob.size > 0) break;
         }
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.warn(`Aggregator ${baseUrl} failed:`, err);
@@ -87,22 +78,20 @@ export const RecoveryBlock = () => {
     if (!encryptedBlob || encryptedBlob.size === 0) {
       setStatus('error');
       setError(
-        <div className="space-y-4">
-          <p className="text-red-400 font-bold">Blob not found on any accessible nodes.</p>
-          <p className="text-[10px] text-white/40 leading-relaxed">
-            The decentralized network might still be synchronizing your data across shards. 
+        <div className="space-y-3">
+          <p className="text-secondary font-bold">Blob not found on any accessible nodes.</p>
+          <p className="text-[11px] text-text-muted leading-relaxed">
+            The decentralized network might still be synchronizing your data across shards.
             This can take 1-5 minutes depending on network load.
           </p>
-          <div className="flex flex-col gap-2 pt-2">
-            <a 
-              href={`https://walruscan.com/testnet/blob/${cleanBlobId}`} 
-              target="_blank" 
-              rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 transition-all"
-            >
-              Check Global Status <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
+          <a
+            href={`https://walruscan.com/testnet/blob/${cleanBlobId}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-[10px] font-mono text-primary hover:bg-primary/20 transition-all"
+          >
+            Check Global Status <ExternalLink className="w-3 h-3" />
+          </a>
         </div>
       );
       return;
@@ -110,13 +99,11 @@ export const RecoveryBlock = () => {
 
     try {
       setStatus('verifying');
-      // 2. Local Decryption (Zero-Knowledge)
       setStatus('decrypting');
       const { file: decryptedFile, integrityVerified: isVerified } = await decryptFile(encryptedBlob, cleanKey, `recovered-${cleanBlobId.slice(0, 8)}`);
       setIntegrityVerified(isVerified);
 
       setStatus('reconstructing');
-      // 3. Trigger Browser Download
       const url = URL.createObjectURL(decryptedFile);
       const a = document.createElement('a');
       a.href = url;
@@ -133,174 +120,195 @@ export const RecoveryBlock = () => {
       setStatus('error');
       const errorMessage = err instanceof Error ? err.message : 'Recovery failed.';
       if (errorMessage.toLowerCase().includes('decryption') || errorMessage.toLowerCase().includes('key')) {
-         setError('Invalid Decryption Key. The key does not match this sealed blob.');
+        setError('Invalid Decryption Key. The key does not match this sealed blob.');
       } else {
-         setError(errorMessage);
+        setError(errorMessage);
       }
     }
   };
 
   return (
-    <section id="recover" className="scroll-mt-32 md:scroll-mt-48">
-      <div className="text-center mb-16 md:mb-20 space-y-4">
-        <div className="inline-flex items-center gap-2 px-5 py-2 rounded-pill bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.4em] mb-4">
-          <Lock className="w-3.5 h-3.5" /> Secure Access
+    <section id="recover" className="scroll-mt-24">
+      <div className="terminal-window rounded-xl">
+        {/* Terminal Header */}
+        <div className="terminal-header px-4 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="terminal-dot bg-secondary/80" />
+            <div className="terminal-dot bg-accent/80" />
+            <div className="terminal-dot bg-primary/80" />
+          </div>
+          <div className="text-[10px] font-mono text-text-muted">walblob recover</div>
+          <div className="w-16" />
         </div>
-        <h2 className="text-4xl md:text-7xl font-display font-black tracking-tighter uppercase text-white leading-tight">
-          Decrypt & <span className="text-gradient">Recover</span>
-        </h2>
-        <p className="text-text-muted text-base md:text-lg font-medium max-w-2xl mx-auto leading-relaxed px-4">
-          Retrieve encrypted files from Walrus and decrypt them locally in your browser. Your key never leaves your device.
-        </p>
-      </div>
 
-      <div className="max-w-4xl mx-auto relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 rounded-[40px] blur-xl opacity-50 group-hover:opacity-100 transition-opacity duration-1000" />
-        
-        <GlassCard className="p-8 md:p-16 bg-[#0A0D1D]/60 backdrop-blur-[80px]">
-          {/* Priority 5: Drag & Drop Package */}
-          <div 
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if(f) handlePackageImport(f); }}
-            className={cn(
-              "absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#050816]/95 transition-all duration-500",
-              isDragging ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-            )}
-          >
-             <FileJson className="w-16 h-16 text-primary animate-pulse mb-6" />
-             <p className="text-lg font-black uppercase tracking-[0.4em] text-white">Import Package</p>
-             <p className="text-text-muted text-xs mt-2 uppercase tracking-widest">Drop .walblob file to auto-fill</p>
+        {/* Terminal Body */}
+        <div className="p-4 md:p-6">
+          {/* Command Header */}
+          <div className="flex items-center gap-2 text-[11px] font-mono text-text-muted mb-6">
+            <span className="text-primary">$</span>
+            <span className="text-accent">walblob</span>
+            <span>recover --decrypt --zero-knowledge</span>
           </div>
 
-          <form onSubmit={handleRecover} className="space-y-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center px-6">
-                  <label className="block text-[10px] font-black uppercase tracking-[0.4em] text-white/30">Blob Identifier</label>
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">
-                    <Upload className="w-3 h-3" /> Select Package
+          <form onSubmit={handleRecover} className="space-y-4">
+            {/* Input Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-mono text-text-muted uppercase tracking-wider">Blob ID</label>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-1 text-[9px] font-mono text-primary hover:text-accent transition-colors"
+                  >
+                    <Upload className="w-3 h-3" /> Import
                   </button>
-                  <input type="file" accept=".walblob" ref={fileInputRef} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if(f) handlePackageImport(f); }} />
+                  <input
+                    type="file"
+                    accept=".walblob"
+                    ref={fileInputRef}
+                    className="hidden"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePackageImport(f); }}
+                  />
                 </div>
                 <div className="relative">
-                  <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-                  <input 
-                    type="text" 
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                  <input
+                    type="text"
                     value={blobId}
                     onChange={(e) => setBlobId(e.target.value)}
                     placeholder="Enter Blob ID..."
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-8 text-sm font-mono text-white/80 outline-none focus:border-primary/50 focus:bg-white/10 transition-all"
+                    className="w-full bg-background-alt border border-border-subtle rounded-lg py-3 pl-10 pr-4 text-xs font-mono text-white outline-none focus:border-primary/50 transition-all"
                   />
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <label className="block text-[10px] font-black uppercase tracking-[0.4em] text-white/30 ml-6">Decryption Key</label>
+              <div className="space-y-2">
+                <label className="text-[10px] font-mono text-text-muted uppercase tracking-wider">Decryption Key</label>
                 <div className="relative">
-                  <Key className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-                  <input 
-                    type="password" 
+                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                  <input
+                    type="password"
                     value={decryptionKey}
                     onChange={(e) => setDecryptionKey(e.target.value)}
                     placeholder="Paste 256-bit AES key..."
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-8 text-sm font-mono text-white/80 outline-none focus:border-primary/50 focus:bg-white/10 transition-all"
+                    className="w-full bg-background-alt border border-border-subtle rounded-lg py-3 pl-10 pr-4 text-xs font-mono text-white outline-none focus:border-primary/50 transition-all"
                   />
                 </div>
               </div>
             </div>
 
+            {/* Import Status */}
             {importedMeta && (
-              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 px-6 py-3 rounded-xl bg-white/5 border border-white/5 w-fit">
-                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Ready to recover: <span className="text-white">{importedMeta}</span></span>
-                <button type="button" onClick={() => setImportedMeta(null)} className="ml-2 text-white/20 hover:text-white transition-colors uppercase text-[8px] font-black">Clear</button>
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 border border-primary/10 w-fit"
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-primary status-pulse" />
+                <span className="text-[10px] font-mono text-text-muted">
+                  Ready: <span className="text-white">{importedMeta}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setImportedMeta(null)}
+                  className="text-text-muted hover:text-secondary transition-colors text-[9px] font-mono ml-2"
+                >
+                  [clear]
+                </button>
               </motion.div>
             )}
 
+            {/* Error */}
             {error && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-5 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center gap-4">
-                <ShieldAlert className="w-5 h-5 text-red-400" />
-                <div className="text-[10px] font-black text-red-400 uppercase tracking-widest">{error}</div>
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center gap-3"
+              >
+                <ShieldAlert className="w-4 h-4 text-secondary" />
+                <div className="text-[11px] font-mono text-secondary">{error}</div>
               </motion.div>
             )}
 
+            {/* Integrity Status */}
             {integrityVerified !== null && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }} 
-                animate={{ opacity: 1, scale: 1 }} 
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
                 className={cn(
-                  "p-4 rounded-xl border flex items-center gap-3 justify-center",
-                  integrityVerified 
-                    ? "bg-emerald-400/10 border-emerald-400/20 text-emerald-400" 
-                    : "bg-red-400/10 border-red-400/20 text-red-400"
+                  "p-3 rounded-lg border flex items-center gap-3",
+                  integrityVerified
+                    ? "bg-success/10 border-success/20 text-success"
+                    : "bg-secondary/10 border-secondary/20 text-secondary"
                 )}
               >
                 {integrityVerified ? <CheckCircle2 className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
-                <span className="text-[10px] font-black uppercase tracking-widest">
+                <span className="text-[10px] font-mono uppercase tracking-wider">
                   {integrityVerified ? 'Integrity Verified' : 'Integrity Check Failed'}
                 </span>
               </motion.div>
             )}
 
-            {/* Priority 9: Advanced Recovery Status */}
+            {/* Progress */}
             <AnimatePresence mode="wait">
               {status !== 'idle' && status !== 'error' && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }} 
-                  animate={{ opacity: 1, height: 'auto' }} 
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0 }}
-                  className="bg-black/40 rounded-3xl border border-white/5 p-8 space-y-6"
+                  className="bg-background-alt rounded-lg border border-border-subtle p-4 space-y-3"
                 >
-                   <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em]">
-                      <span className="text-white/40">Status: <span className="text-primary">{status}</span></span>
-                      <span className="text-white/10">Zero-Knowledge Retrieval</span>
-                   </div>
-                   
-                   <div className="flex items-center justify-between gap-4">
-                      {[
-                        { label: 'Fetch', s: 'downloading' },
-                        { label: 'Verify', s: 'verifying' },
-                        { label: 'Decrypt', s: 'decrypting' },
-                        { label: 'Ready', s: 'success' }
-                      ].map((step, i) => (
-                        <div key={i} className="flex-1 flex flex-col items-center gap-3">
-                           <div className={cn(
-                             "w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-500",
-                             status === step.s ? "border-primary bg-primary/20 text-primary shadow-[0_0_20px_rgba(0,209,255,0.3)]" : 
-                             ['verifying','decrypting','reconstructing','success'].includes(status) && i === 0 || 
-                             ['decrypting','reconstructing','success'].includes(status) && i === 1 ||
-                             ['reconstructing','success'].includes(status) && i === 2 ||
-                             status === 'success' && i === 3
-                             ? "border-emerald-400 bg-emerald-400/20 text-emerald-400" : "border-white/10 text-white/10"
-                           )}>
-                              {status === 'success' && i === 3 ? <CheckCircle2 className="w-4 h-4" /> : <div className="text-[10px] font-black">{i + 1}</div>}
-                           </div>
-                           <span className={cn(
-                             "text-[8px] font-black uppercase tracking-widest",
-                             status === step.s ? "text-primary" : "text-white/10"
-                           )}>{step.label}</span>
+                  <div className="flex items-center justify-between text-[10px] font-mono text-text-muted">
+                    <span>Status: <span className="text-primary uppercase">{status}</span></span>
+                    <span>Zero-Knowledge Mode</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {[
+                      { label: 'FETCH', s: 'downloading' },
+                      { label: 'VERIFY', s: 'verifying' },
+                      { label: 'DECRYPT', s: 'decrypting' },
+                      { label: 'READY', s: 'success' }
+                    ].map((step, i) => (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                        <div className={cn(
+                          "w-6 h-6 rounded border flex items-center justify-center text-[9px] font-mono transition-all",
+                          status === step.s ? "border-primary bg-primary/20 text-primary" :
+                            ['verifying', 'decrypting', 'reconstructing', 'success'].includes(status) && i < ['verifying', 'decrypting', 'reconstructing', 'success'].indexOf(status) + 1
+                              ? "border-success bg-success/20 text-success"
+                              : "border-border-subtle text-text-muted"
+                        )}>
+                          {status === 'success' && i === 3 ? <CheckCircle2 className="w-3 h-3" /> : i + 1}
                         </div>
-                      ))}
-                   </div>
+                        <span className={cn(
+                          "text-[8px] font-mono uppercase",
+                          status === step.s ? "text-primary" : "text-text-muted"
+                        )}>
+                          {step.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <button 
+            {/* Submit Button */}
+            <button
               disabled={(status !== 'idle' && status !== 'success' && status !== 'error') || !blobId || !decryptionKey}
-              className="w-full bg-white text-black py-6 rounded-pill font-black text-[12px] uppercase tracking-[0.4em] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_20px_40px_rgba(255,255,255,0.1)] disabled:opacity-20 flex items-center justify-center gap-4"
+              className="w-full bg-primary text-black py-3 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-accent transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 btn-terminal"
             >
               {status === 'idle' || status === 'error' ? (
-                <><Download className="w-5 h-5" /> Recover File</>
+                <><Download className="w-4 h-4" /> Recover File</>
               ) : status === 'success' ? (
-                <><ShieldCheck className="w-5 h-5" /> Success</>
+                <><ShieldCheck className="w-4 h-4" /> Success</>
               ) : (
-                <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</>
+                <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
               )}
             </button>
           </form>
-        </GlassCard>
+        </div>
       </div>
     </section>
   );

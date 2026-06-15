@@ -10,7 +10,7 @@ function cn(...inputs: ClassValue[]) {
 
 const NAV_LINKS = [
   { name: 'Features', href: '#features' },
-  { name: 'How It Works', href: '#how-it-works' },
+  { name: 'Protocol', href: '#how-it-works' },
   { name: 'Security', href: '#security' },
   { name: 'FAQ', href: '#faq' },
   { name: 'Explorer', href: '#explorer' },
@@ -20,30 +20,32 @@ export const Header = () => {
   const { network, setNetwork } = useNetwork();
 
   return (
-    <motion.nav 
-      initial={{ y: -20, opacity: 0 }}
+    <motion.header
+      initial={{ y: -30, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="fixed top-0 left-0 w-full z-50 py-4 px-6"
+      transition={{ duration: 0.6 }}
+      className="fixed top-0 left-0 w-full z-50 py-3 px-4 md:px-6"
     >
-      <div className="max-w-[1440px] mx-auto">
-        <div className="glass-v3 inner-glow rounded-full px-6 md:px-8 py-3 flex items-center justify-between backdrop-blur-3xl border-white/[0.05]">
+      <div className="max-w-7xl mx-auto">
+        <nav className="terminal-window rounded-xl px-4 md:px-6 py-3 flex items-center justify-between">
           {/* Logo */}
           <a href="/" className="flex items-center gap-3 group">
-            <img 
-              src="/walblob-logo.png?v=1" 
-              alt="WalBlob Logo" 
-              className="h-8 md:h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-500" 
-            />
-            <span className="text-xl font-display font-bold tracking-tight text-white">WalBlob</span>
+            <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/20 transition-all">
+              <span className="text-primary font-mono font-bold text-sm">W</span>
+            </div>
+            <div className="hidden sm:block">
+              <span className="text-lg font-display font-bold tracking-tight text-white">WalBlob</span>
+              <span className="text-primary text-xs ml-1 font-mono">v3.0</span>
+            </div>
           </a>
 
           {/* Center Links */}
-          <div className="hidden lg:flex items-center gap-8">
+          <div className="hidden lg:flex items-center gap-1">
             {NAV_LINKS.map((link) => (
-              <a 
+              <a
                 key={link.name}
-                href={link.href} 
-                className="text-[13px] font-medium text-text-muted hover:text-white transition-colors duration-300"
+                href={link.href}
+                className="px-3 py-2 text-xs font-medium text-text-muted hover:text-primary transition-colors rounded-lg hover:bg-primary/5"
               >
                 {link.name}
               </a>
@@ -51,32 +53,46 @@ export const Header = () => {
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-1 bg-white/[0.03] p-1 rounded-full border border-white/5">
-              <button 
+          <div className="flex items-center gap-3">
+            {/* Network Toggle */}
+            <div className="hidden sm:flex items-center gap-0.5 bg-background-alt p-0.5 rounded-lg border border-border-subtle">
+              <button
                 onClick={() => setNetwork('testnet')}
                 className={cn(
-                  "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all",
-                  network === 'testnet' ? "bg-white/10 text-white" : "text-text-muted hover:text-white"
+                  "px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all",
+                  network === 'testnet'
+                    ? "bg-primary/20 text-primary"
+                    : "text-text-muted hover:text-white"
                 )}
               >
-                Testnet
+                Test
               </button>
-              <button 
+              <button
                 onClick={() => setNetwork('mainnet')}
                 className={cn(
-                  "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all",
-                  network === 'mainnet' ? "bg-primary/20 text-primary" : "text-text-muted hover:text-white"
+                  "px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all",
+                  network === 'mainnet'
+                    ? "bg-primary/20 text-primary"
+                    : "text-text-muted hover:text-white"
                 )}
               >
-                Mainnet
+                Main
               </button>
             </div>
 
-            <ConnectButton className="!bg-white !text-black !rounded-full !px-6 !py-2.5 !font-bold !text-[11px] !uppercase !tracking-widest transition-all hover:scale-105 active:scale-95 shadow-[0_10px_30px_rgba(255,255,255,0.1)] btn-lift" />
+            {/* Status Indicator */}
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/5 border border-primary/10">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary status-pulse" />
+              <span className="text-[10px] font-mono text-primary uppercase">Online</span>
+            </div>
+
+            {/* Wallet Connect */}
+            <ConnectButton
+              className="!bg-primary !text-black !rounded-lg !px-4 !py-2 !font-bold !text-xs !uppercase !tracking-wider transition-all hover:scale-105 active:scale-95 btn-terminal"
+            />
           </div>
-        </div>
+        </nav>
       </div>
-    </motion.nav>
+    </motion.header>
   );
 };

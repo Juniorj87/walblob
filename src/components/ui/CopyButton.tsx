@@ -32,10 +32,10 @@ export const CopyButton = ({ text, label, className }: CopyButtonProps) => {
     <button
       onClick={handleCopy}
       className={cn(
-        "flex items-center justify-center gap-2.5 transition-all duration-500 relative overflow-hidden group/btn",
-        "bg-white/[0.03] border border-white/5 hover:bg-white/[0.08] hover:border-white/10 hover:scale-105 active:scale-95",
-        copied ? "text-emerald-400 border-emerald-400/20 bg-emerald-400/5 shadow-[0_0_20px_rgba(16,185,129,0.1)]" : "text-white/30 hover:text-white",
-        label ? "px-6 py-3 rounded-2xl" : "p-3 rounded-xl",
+        "flex items-center justify-center gap-1.5 transition-all relative overflow-hidden group/btn rounded-md",
+        "bg-background border border-border-subtle hover:bg-primary/10 hover:border-primary/30 hover:text-primary",
+        copied ? "text-success border-success/30 bg-success/10" : "text-text-muted",
+        label ? "px-2.5 py-1.5" : "p-1.5",
         className
       )}
     >
@@ -46,10 +46,10 @@ export const CopyButton = ({ text, label, className }: CopyButtonProps) => {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
-            className="flex items-center gap-2.5"
+            className="flex items-center gap-1"
           >
-            <Check className="w-4 h-4" />
-            {label && <span className="text-[10px] font-bold uppercase tracking-[0.15em] leading-none">Copied</span>}
+            <Check className="w-3 h-3" />
+            {label && <span className="text-[9px] font-mono uppercase">{label}</span>}
           </motion.div>
         ) : (
           <motion.div
@@ -57,16 +57,13 @@ export const CopyButton = ({ text, label, className }: CopyButtonProps) => {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
-            className="flex items-center gap-2.5"
+            className="flex items-center gap-1"
           >
-            <Copy className="w-4 h-4 group-hover/btn:scale-110 transition-transform duration-500" />
-            {label && <span className="text-[10px] font-bold uppercase tracking-[0.15em] leading-none transition-colors">{label}</span>}
+            <Copy className="w-3 h-3 group-hover/btn:scale-110 transition-transform" />
+            {label && <span className="text-[9px] font-mono uppercase transition-colors">{label}</span>}
           </motion.div>
         )}
       </AnimatePresence>
-      
-      {/* Visual Light Sweep on Click */}
-      <div className="absolute inset-0 bg-white/5 opacity-0 group-active/btn:opacity-100 transition-opacity" />
     </button>
   );
 };
