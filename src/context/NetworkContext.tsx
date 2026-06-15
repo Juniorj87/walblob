@@ -16,8 +16,8 @@ const NETWORKS: Record<NetworkType, NetworkConfig> = {
     explorerUrl: 'https://walruscan.com/testnet'
   },
   mainnet: {
-    publisherUrl: 'https://publisher.walrus.space', // Placeholder for actual mainnet
-    aggregatorUrl: 'https://aggregator.walrus.space', // Placeholder for actual mainnet
+    publisherUrl: import.meta.env.VITE_WALRUS_MAINNET_PUBLISHER_URL || 'https://publisher.walrus.space',
+    aggregatorUrl: import.meta.env.VITE_WALRUS_MAINNET_AGGREGATOR_URL || 'https://aggregator.walrus.space',
     explorerUrl: 'https://walruscan.com/mainnet'
   }
 };

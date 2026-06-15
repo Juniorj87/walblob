@@ -13,6 +13,7 @@ import {
 import { useState, useRef, useEffect, useCallback } from 'react';
 import QRCode from 'qrcode';
 import { useWalrus } from '../../hooks/useWalrus';
+import { useWalrusTransaction } from '../../hooks/useWalrusTransaction';
 import { encryptFile } from '../../utils/encryption';
 import { historyService } from '../../utils/history';
 import { UploadHistory } from './UploadHistory';
@@ -34,6 +35,8 @@ import { VisualSecurityModel } from './VisualSecurityModel';
 import { ProductFeatureCards } from './ProductFeatureCards';
 import { FAQSection } from './FAQSection';
 import { Footer } from '../ui/Footer';
+import { FeeConfirmationModal } from '../ui/FeeConfirmationModal';
+import { type FeeBreakdown } from '../../utils/fees';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -172,7 +175,14 @@ export default function Dashboard() {
   const uploadStartTimeRef = useRef<number>(0);
   const appSectionRef = useRef<HTMLDivElement>(null);
 
+  const [feeModalOpen, setFeeModalOpen] = useState(false);
+  const [currentFees, setCurrentFees] = useState<FeeBreakdown | null>(null);
+  const [pendingFileName, setPendingFileName] = useState('');
+  const [pendingTotalSize, setPendingTotalSize] = useState(0);
+  const [txError, setTxError] = useState<string | null>(null);
+
   const { network } = useNetwork();
+  const { getFees, executeStoragePayment, isConnected } = useWalrusTransaction();
 
   useEffect(() => {
     if (showQR) {
@@ -261,6 +271,23 @@ export default function Dashboard() {
 
   const confirmAndUpload = () => {
     if (!selectedFiles) return;
+
+    if (network === 'mainnet') {
+      const totalSize = selectedFiles.reduce((acc, f) => acc + f.size, 0);
+      const firstFileName = selectedFiles.length === 1
+        ? selectedFiles[0].name
+        : `${selectedFiles.length} files (${formatSize(totalSize)})`;
+      const epochs = Math.max(1, Math.ceil(retentionDays / 30));
+      const fees = getFees(totalSize, epochs);
+
+      setCurrentFees(fees);
+      setPendingFileName(firstFileName);
+      setPendingTotalSize(totalSize);
+      setTxError(null);
+      setFeeModalOpen(true);
+      return;
+    }
+
     const newItems: UploadQueueItem[] = selectedFiles.map(f => ({
       id: Math.random().toString(36).slice(2, 11),
       file: f,
@@ -269,6 +296,35 @@ export default function Dashboard() {
     }));
     setQueue(prev => [...prev, ...newItems]);
     setSelectedFiles(null);
+  };
+
+  const handleFeeConfirmed = async () => {
+    if (!selectedFiles || !currentFees) return;
+
+    try {
+      await executeStoragePayment(pendingTotalSize, currentFees.epochs);
+
+      const newItems: UploadQueueItem[] = selectedFiles.map(f => ({
+        id: Math.random().toString(36).slice(2, 11),
+        file: f,
+        status: 'pending',
+        progress: 0
+      }));
+      setQueue(prev => [...prev, ...newItems]);
+      setSelectedFiles(null);
+      setFeeModalOpen(false);
+      setCurrentFees(null);
+      setTxError(null);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Transaction failed';
+      setTxError(errorMessage);
+    }
+  };
+
+  const handleFeeCancelled = () => {
+    setFeeModalOpen(false);
+    setCurrentFees(null);
+    setTxError(null);
   };
 
   const downloadRecoveryPackage = async (item: UploadQueueItem) => {
@@ -700,6 +756,18 @@ export default function Dashboard() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* FEE CONFIRMATION MODAL */}
+      <FeeConfirmationModal
+        isOpen={feeModalOpen}
+        fees={currentFees}
+        fileName={pendingFileName}
+        isProcessing={false}
+        error={txError}
+        isWalletConnected={isConnected}
+        onConfirm={handleFeeConfirmed}
+        onCancel={handleFeeCancelled}
+      />
 
       <Footer />
     </div>

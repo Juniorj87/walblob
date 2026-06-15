@@ -9,22 +9,16 @@ import { decryptFile } from '../../utils/decryptFile';
 import { twMerge } from 'tailwind-merge';
 import { clsx, type ClassValue } from 'clsx';
 import { parseRecoveryPackage } from '../../utils/RecoveryPackageParser';
+import { useNetwork } from '../../context/NetworkContext';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const AGGREGATORS = [
-  (import.meta.env.VITE_WALRUS_AGGREGATOR_URL || 'https://aggregator.walrus-testnet.walrus.space').replace(/\/$/, ''),
-  'https://walrus-testnet-aggregator.nodes.guru',
-  'https://walrus-testnet.aggregator.aspace.cloud',
-  'https://walrus-testnet-aggregator.shandong.io',
-  'https://aggregator-walrus-testnet.testnet.sui.io'
-];
-
 type RecoveryStatus = 'idle' | 'downloading' | 'verifying' | 'decrypting' | 'reconstructing' | 'success' | 'error';
 
 export const RecoveryBlock = () => {
+  const { config } = useNetwork();
   const [blobId, setBlobId] = useState(() => new URLSearchParams(window.location.search).get('blob') || '');
   const [decryptionKey, setDecryptionKey] = useState('');
   const [status, setStatus] = useState<RecoveryStatus>('idle');
@@ -58,7 +52,9 @@ export const RecoveryBlock = () => {
 
     let encryptedBlob: Blob | null = null;
 
-    for (const baseUrl of AGGREGATORS) {
+    const aggregators = [config.aggregatorUrl];
+
+    for (const baseUrl of aggregators) {
       try {
         if (import.meta.env.DEV) console.log(`Walrus: Trying aggregator ${baseUrl}`);
         const response = await fetch(`${baseUrl}/v1/blobs/${cleanBlobId}`, {
