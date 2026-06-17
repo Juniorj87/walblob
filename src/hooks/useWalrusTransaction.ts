@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
-import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
+import { useCurrentAccount, useSignAndExecuteTransaction, useSuiClient } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
 import { useNetwork } from '../context/NetworkContext';
-import { calculateFees, GAS_BUDGET_MIST, type FeeBreakdown } from '../utils/fees';
+import { calculateFees, GAS_BUDGET_MIST, WAL_COIN_TYPE, WAL_DECIMALS, type FeeBreakdown, type PaymentToken } from '../utils/fees';
 
 const WALBLOB_COMMISSION_ADDRESS = '0x30a293e77a0a23468a1c05149a985a3810ebca25cc7efe45952cd3e267bb90ef';
 
@@ -15,6 +15,7 @@ interface TransactionState {
 export function useWalrusTransaction() {
   const currentAccount = useCurrentAccount();
   const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
+  const suiClient = useSuiClient();
   const { network } = useNetwork();
 
   const [txState, setTxState] = useState<TransactionState>({
@@ -30,6 +31,7 @@ export function useWalrusTransaction() {
   const executeStoragePayment = useCallback(async (
     fileSize: number,
     epochs: number,
+    paymentToken: PaymentToken = 'SUI',
   ): Promise<{ digest: string; fees: FeeBreakdown }> => {
     if (!currentAccount) {
       throw new Error('Wallet not connected');
@@ -45,18 +47,36 @@ export function useWalrusTransaction() {
     try {
       const tx = new Transaction();
 
-      const commissionMist = fees.commissionMist > 0n ? fees.commissionMist : 0n;
+      if (paymentToken === 'WAL') {
+        const totalWal = fees.totalCostWal;
+        const totalWalMist = BigInt(Math.round(totalWal * Math.pow(10, WAL_DECIMALS)));
+        const storageWalMist = BigInt(Math.round(fees.storageCostWal * Math.pow(10, WAL_DECIMALS)));
+        const commissionWalMist = totalWalMist - storageWalMist;
 
-      if (fees.totalCostMist > 0n) {
-        const [coin] = tx.splitCoins(tx.gas, [fees.totalCostMist]);
+        if (totalWalMist > 0n) {
+          const [coin] = tx.splitCoins(tx.coin({ type: WAL_COIN_TYPE, balance: totalWalMist }), [totalWalMist]);
 
-        if (commissionMist > 0n) {
-          const [storageCoin, commissionCoin] = tx.splitCoins(coin, [fees.storageCostMist, commissionMist]);
+          if (commissionWalMist > 0n) {
+            const [storageCoin, commissionCoin] = tx.splitCoins(coin, [storageWalMist, commissionWalMist]);
+            tx.transferObjects([storageCoin], currentAccount.address);
+            tx.transferObjects([commissionCoin], WALBLOB_COMMISSION_ADDRESS);
+          } else {
+            tx.transferObjects([coin], currentAccount.address);
+          }
+        }
+      } else {
+        const commissionMist = fees.commissionMist > 0n ? fees.commissionMist : 0n;
 
-          tx.transferObjects([storageCoin], currentAccount.address);
-          tx.transferObjects([commissionCoin], WALBLOB_COMMISSION_ADDRESS);
-        } else {
-          tx.transferObjects([coin], currentAccount.address);
+        if (fees.totalCostMist > 0n) {
+          const [coin] = tx.splitCoins(tx.gas, [fees.totalCostMist]);
+
+          if (commissionMist > 0n) {
+            const [storageCoin, commissionCoin] = tx.splitCoins(coin, [fees.storageCostMist, commissionMist]);
+            tx.transferObjects([storageCoin], currentAccount.address);
+            tx.transferObjects([commissionCoin], WALBLOB_COMMISSION_ADDRESS);
+          } else {
+            tx.transferObjects([coin], currentAccount.address);
+          }
         }
       }
 
@@ -84,7 +104,7 @@ export function useWalrusTransaction() {
       });
       throw err;
     }
-  }, [currentAccount, signAndExecute, network]);
+  }, [currentAccount, signAndExecute, network, suiClient]);
 
   const resetState = useCallback(() => {
     setTxState({ isProcessing: false, error: null, digest: null });

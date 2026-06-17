@@ -18,11 +18,11 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const AGGREGATORS = [
-  (import.meta.env.VITE_WALRUS_AGGREGATOR_URL || 'https://aggregator.walrus-testnet.walrus.space').replace(/\/$/, ''),
-  'https://walrus-testnet-aggregator.nodes.guru',
-  'https://walrus-testnet.aggregator.aspace.cloud',
-  'https://walrus-testnet-aggregator.shandong.io',
-  'https://aggregator-walrus-testnet.testnet.sui.io'
+  (import.meta.env.VITE_WALRUS_MAINNET_AGGREGATOR_URL || 'https://aggregator.walrus.space').replace(/\/$/, ''),
+  'https://aggregator.walrus.space',
+  'https://walrus-aggregator.nodes.guru',
+  'https://walrus.aggregator.aspace.cloud',
+  'https://aggregator-walrus.mainnet.sui.io'
 ];
 
 type RecoveryStatus = 'idle' | 'downloading' | 'verifying' | 'decrypting' | 'reconstructing' | 'success' | 'error';
@@ -89,7 +89,7 @@ export default function Retrieve() {
           </p>
           <div className="flex flex-col gap-2 pt-2">
             <a 
-              href={`https://walruscan.com/testnet/blob/${cleanBlobId}`} 
+              href={`https://walruscan.com/mainnet/blob/${cleanBlobId}`} 
               target="_blank" 
               rel="noreferrer"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary/10 transition-all"

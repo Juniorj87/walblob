@@ -35,10 +35,7 @@ const LoadingFallback = () => (
 );
 
 const { networkConfig } = createNetworkConfig({
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	mainnet: { url: 'https://fullnode.mainnet.sui.io:443', network: 'mainnet' as any },
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	testnet: { url: 'https://fullnode.testnet.sui.io:443', network: 'testnet' as any },
+	mainnet: { url: 'https://fullnode.mainnet.sui.io:443' },
 });
 
 const queryClient = new QueryClient();

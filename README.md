@@ -77,8 +77,9 @@ The output will be in the `dist/` directory.
 Create a `.env` file in the root directory:
 
 ```env
-VITE_WALRUS_PUBLISHER_URL=https://publisher.walrus-testnet.walrus.space
-VITE_WALRUS_AGGREGATOR_URL=https://aggregator.walrus-testnet.walrus.space
+# Optional: Override default mainnet URLs
+# VITE_WALRUS_MAINNET_PUBLISHER_URL=https://publisher.walrus.space
+# VITE_WALRUS_MAINNET_AGGREGATOR_URL=https://aggregator.walrus.space
 ```
 
 ## 🔒 Security Model

@@ -3,7 +3,13 @@ import {
   X, ShieldCheck, AlertTriangle, Loader2,
   Coins, Percent, Zap, Lock, Wallet
 } from 'lucide-react';
-import { type FeeBreakdown } from '../../utils/fees';
+import { type FeeBreakdown, type PaymentToken } from '../../utils/fees';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 interface FeeConfirmationModalProps {
   isOpen: boolean;
@@ -12,6 +18,8 @@ interface FeeConfirmationModalProps {
   isProcessing: boolean;
   error: string | null;
   isWalletConnected: boolean;
+  paymentToken: PaymentToken;
+  onTokenChange: (token: PaymentToken) => void;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -23,6 +31,8 @@ export const FeeConfirmationModal = ({
   isProcessing,
   error,
   isWalletConnected,
+  paymentToken,
+  onTokenChange,
   onConfirm,
   onCancel,
 }: FeeConfirmationModalProps) => {
@@ -80,8 +90,45 @@ export const FeeConfirmationModal = ({
                     Mainnet Transaction
                   </p>
                   <p className="text-[10px] text-text-muted leading-relaxed">
-                    This will execute an on-chain transaction on the Sui Mainnet. Real SUI tokens will be spent.
+                    This will execute an on-chain transaction on the Sui Mainnet. Real {paymentToken} tokens will be spent.
                   </p>
+                </div>
+              </div>
+
+              {/* Payment Token Selector */}
+              <div className="space-y-2">
+                <div className="text-[10px] font-mono text-text-muted uppercase tracking-wider">Payment Token</div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onTokenChange('SUI')}
+                    disabled={isProcessing}
+                    className={cn(
+                      "flex-1 py-2.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all border",
+                      paymentToken === 'SUI'
+                        ? "bg-primary/10 border-primary/30 text-primary"
+                        : "bg-white/[0.02] border-border-subtle text-text-muted hover:text-white hover:border-white/20",
+                      "disabled:opacity-50"
+                    )}
+                  >
+                    <span className="flex items-center justify-center gap-1.5">
+                      <Coins className="w-3 h-3" /> SUI
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => onTokenChange('WAL')}
+                    disabled={isProcessing}
+                    className={cn(
+                      "flex-1 py-2.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all border",
+                      paymentToken === 'WAL'
+                        ? "bg-accent/10 border-accent/30 text-accent"
+                        : "bg-white/[0.02] border-border-subtle text-text-muted hover:text-white hover:border-white/20",
+                      "disabled:opacity-50"
+                    )}
+                  >
+                    <span className="flex items-center justify-center gap-1.5">
+                      <Wallet className="w-3 h-3" /> WAL
+                    </span>
+                  </button>
                 </div>
               </div>
 
@@ -101,7 +148,9 @@ export const FeeConfirmationModal = ({
                       <Coins className="w-3 h-3 text-primary" />
                       <span className="text-[10px] font-mono text-text-muted">Storage ({fees.fileSizeFormatted} × {fees.epochs} epochs)</span>
                     </div>
-                    <span className="text-[10px] font-mono text-white">{fees.storageCostSui.toFixed(4)} SUI</span>
+                    <span className="text-[10px] font-mono text-white">
+                      {paymentToken === 'WAL' ? `${fees.storageCostWal.toFixed(6)} WAL` : `${fees.storageCostSui.toFixed(4)} SUI`}
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between p-2 rounded bg-primary/5 border border-primary/10">
@@ -109,16 +158,20 @@ export const FeeConfirmationModal = ({
                       <Percent className="w-3 h-3 text-primary" />
                       <span className="text-[10px] font-mono text-primary">Platform Fee (2%)</span>
                     </div>
-                    <span className="text-[10px] font-mono text-primary">{fees.commissionSui.toFixed(4)} SUI</span>
+                    <span className="text-[10px] font-mono text-primary">
+                      {paymentToken === 'WAL' ? `${fees.commissionWal.toFixed(6)} WAL` : `${fees.commissionSui.toFixed(4)} SUI`}
+                    </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-2 rounded bg-white/[0.02] border border-border-subtle">
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-3 h-3 text-accent" />
-                      <span className="text-[10px] font-mono text-text-muted">Est. Gas</span>
+                  {paymentToken === 'SUI' && (
+                    <div className="flex items-center justify-between p-2 rounded bg-white/[0.02] border border-border-subtle">
+                      <div className="flex items-center gap-2">
+                        <Zap className="w-3 h-3 text-accent" />
+                        <span className="text-[10px] font-mono text-text-muted">Est. Gas</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-text-muted">~{fees.gasBudgetSui.toFixed(4)} SUI</span>
                     </div>
-                    <span className="text-[10px] font-mono text-text-muted">~{fees.gasBudgetSui.toFixed(4)} SUI</span>
-                  </div>
+                  )}
                 </div>
 
                 {/* Total */}
@@ -128,7 +181,10 @@ export const FeeConfirmationModal = ({
                     <span className="text-[11px] font-mono text-success font-bold uppercase tracking-wider">Total</span>
                   </div>
                   <span className="text-sm font-display font-bold text-success">
-                    ~{fees.totalWithGasSui.toFixed(4)} SUI
+                    {paymentToken === 'WAL'
+                      ? `${fees.totalWithGasWal.toFixed(6)} WAL`
+                      : `~${fees.totalWithGasSui.toFixed(4)} SUI`
+                    }
                   </span>
                 </div>
               </div>

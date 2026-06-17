@@ -81,7 +81,7 @@ export const RecoveryBlock = () => {
             This can take 1-5 minutes depending on network load.
           </p>
           <a
-            href={`https://walruscan.com/testnet/blob/${cleanBlobId}`}
+            href={`https://walruscan.com/mainnet/blob/${cleanBlobId}`}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-[10px] font-mono text-primary hover:bg-primary/20 transition-all"

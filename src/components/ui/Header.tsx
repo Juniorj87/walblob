@@ -1,12 +1,5 @@
 import { motion } from 'framer-motion';
 import { ConnectButton } from '@mysten/dapp-kit';
-import { useNetwork } from '../../context/NetworkContext';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 const NAV_LINKS = [
   { name: 'Features', href: '#features' },
@@ -17,8 +10,6 @@ const NAV_LINKS = [
 ];
 
 export const Header = () => {
-  const { network, setNetwork } = useNetwork();
-
   return (
     <motion.header
       initial={{ y: -30, opacity: 0 }}
@@ -54,32 +45,6 @@ export const Header = () => {
 
           {/* Right Actions */}
           <div className="flex items-center gap-3">
-            {/* Network Toggle */}
-            <div className="hidden sm:flex items-center gap-0.5 bg-background-alt p-0.5 rounded-lg border border-border-subtle">
-              <button
-                onClick={() => setNetwork('testnet')}
-                className={cn(
-                  "px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all",
-                  network === 'testnet'
-                    ? "bg-primary/20 text-primary"
-                    : "text-text-muted hover:text-white"
-                )}
-              >
-                Test
-              </button>
-              <button
-                onClick={() => setNetwork('mainnet')}
-                className={cn(
-                  "px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all",
-                  network === 'mainnet'
-                    ? "bg-primary/20 text-primary"
-                    : "text-text-muted hover:text-white"
-                )}
-              >
-                Main
-              </button>
-            </div>
-
             {/* Status Indicator */}
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/5 border border-primary/10">
               <div className="w-1.5 h-1.5 rounded-full bg-primary status-pulse" />

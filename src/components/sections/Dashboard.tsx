@@ -36,7 +36,7 @@ import { ProductFeatureCards } from './ProductFeatureCards';
 import { FAQSection } from './FAQSection';
 import { Footer } from '../ui/Footer';
 import { FeeConfirmationModal } from '../ui/FeeConfirmationModal';
-import { type FeeBreakdown } from '../../utils/fees';
+import { type FeeBreakdown, type PaymentToken } from '../../utils/fees';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -180,6 +180,7 @@ export default function Dashboard() {
   const [pendingFileName, setPendingFileName] = useState('');
   const [pendingTotalSize, setPendingTotalSize] = useState(0);
   const [txError, setTxError] = useState<string | null>(null);
+  const [paymentToken, setPaymentToken] = useState<PaymentToken>('SUI');
 
   const { network } = useNetwork();
   const { getFees, executeStoragePayment, isConnected } = useWalrusTransaction();
@@ -302,7 +303,7 @@ export default function Dashboard() {
     if (!selectedFiles || !currentFees) return;
 
     try {
-      await executeStoragePayment(pendingTotalSize, currentFees.epochs);
+      await executeStoragePayment(pendingTotalSize, currentFees.epochs, paymentToken);
 
       const newItems: UploadQueueItem[] = selectedFiles.map(f => ({
         id: Math.random().toString(36).slice(2, 11),
@@ -765,6 +766,8 @@ export default function Dashboard() {
         isProcessing={false}
         error={txError}
         isWalletConnected={isConnected}
+        paymentToken={paymentToken}
+        onTokenChange={setPaymentToken}
         onConfirm={handleFeeConfirmed}
         onCancel={handleFeeCancelled}
       />
