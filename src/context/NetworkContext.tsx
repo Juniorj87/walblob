@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext } from 'react';
 
 interface NetworkConfig {
   publisherUrl: string;
@@ -15,13 +15,14 @@ const NETWORK_CONFIG: NetworkConfig = {
 
 interface NetworkContextType {
   config: NetworkConfig;
+  network: string;
 }
 
 const NetworkContext = createContext<NetworkContextType | undefined>(undefined);
 
 export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <NetworkContext.Provider value={{ config: NETWORK_CONFIG }}>
+    <NetworkContext.Provider value={{ config: NETWORK_CONFIG, network: 'mainnet' }}>
       {children}
     </NetworkContext.Provider>
   );

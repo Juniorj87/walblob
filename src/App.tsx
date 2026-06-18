@@ -35,7 +35,7 @@ const LoadingFallback = () => (
 );
 
 const { networkConfig } = createNetworkConfig({
-	mainnet: { url: 'https://fullnode.mainnet.sui.io:443' },
+	mainnet: { url: 'https://fullnode.mainnet.sui.io:443', network: 'mainnet' as const },
 });
 
 const queryClient = new QueryClient();

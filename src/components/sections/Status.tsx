@@ -8,7 +8,7 @@ export default function Status() {
   const nodes = [
     { name: 'Walrus Publisher', status: 'Operational', latency: '42ms' },
     { name: 'Walrus Aggregator', status: 'Operational', latency: '38ms' },
-    { name: 'Sui Testnet RPC', status: 'Operational', latency: '120ms' },
+    { name: 'Sui Mainnet RPC', status: 'Operational', latency: '120ms' },
     { name: 'Encryption Engine', status: 'Operational', latency: 'Local' },
   ];
 
