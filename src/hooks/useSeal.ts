@@ -13,14 +13,12 @@ const MODULE_NAME = 'access_control';
 function getServerConfigs() {
   const configs: Array<{
     objectId: string;
-    aggregatorUrl: string;
     weight: number;
     apiKeyName?: string;
     apiKey?: string;
   }> = [
     {
-      objectId: '0x686098f1439237fff9f36b99c7329683c22979d2005c2465cb891acb012a7595',
-      aggregatorUrl: 'https://seal-aggregator-mainnet.mystenlabs.com',
+      objectId: '0x145540d931f182fef76467dd8074c9839aea126852d90d18e1556fcbbd1208b6',
       weight: 1,
     },
   ];
