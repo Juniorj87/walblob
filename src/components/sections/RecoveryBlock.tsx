@@ -1,14 +1,13 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Key, Download, Loader2, ShieldCheck,
+  Download, Loader2, ShieldCheck,
   Search, ShieldAlert,
   CheckCircle2, ExternalLink, Upload
 } from 'lucide-react';
 import { useState, useRef } from 'react';
-import { decryptFile } from '../../utils/decryptFile';
+import { useSeal } from '../../hooks/useSeal';
 import { twMerge } from 'tailwind-merge';
 import { clsx, type ClassValue } from 'clsx';
-import { parseRecoveryPackage } from '../../utils/RecoveryPackageParser';
 import { useNetwork } from '../../context/NetworkContext';
 
 function cn(...inputs: ClassValue[]) {
@@ -20,21 +19,17 @@ type RecoveryStatus = 'idle' | 'downloading' | 'verifying' | 'decrypting' | 'rec
 export const RecoveryBlock = () => {
   const { config } = useNetwork();
   const [blobId, setBlobId] = useState(() => new URLSearchParams(window.location.search).get('blob') || '');
-  const [decryptionKey, setDecryptionKey] = useState('');
   const [status, setStatus] = useState<RecoveryStatus>('idle');
   const [error, setError] = useState<React.ReactNode | null>(null);
-  const [importedMeta, setImportedMeta] = useState<string | null>(null);
   const [integrityVerified, setIntegrityVerified] = useState<boolean | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { decrypt: sealDecrypt, isConfigured: sealConfigured } = useSeal();
 
   const handlePackageImport = async (file: File) => {
     try {
-      const pkg = await parseRecoveryPackage(file);
+      const text = await file.text();
+      const pkg = JSON.parse(text);
       setBlobId(pkg.blobId);
-      setDecryptionKey(pkg.key);
-      if (pkg.metadata?.name) {
-        setImportedMeta(pkg.metadata.name);
-      }
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse recovery package.');
@@ -44,8 +39,12 @@ export const RecoveryBlock = () => {
   const handleRecover = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanBlobId = blobId.trim();
-    const cleanKey = decryptionKey.trim();
-    if (!cleanBlobId || !cleanKey) return;
+    if (!cleanBlobId) return;
+
+    if (!sealConfigured) {
+      setError('Seal is not configured. Set VITE_SEAL_PACKAGE_ID and VITE_SEAL_REGISTRY_ID.');
+      return;
+    }
 
     setStatus('downloading');
     setError(null);
@@ -96,27 +95,29 @@ export const RecoveryBlock = () => {
     try {
       setStatus('verifying');
       setStatus('decrypting');
-      const { file: decryptedFile, integrityVerified: isVerified } = await decryptFile(encryptedBlob, cleanKey, `recovered-${cleanBlobId.slice(0, 8)}`);
-      setIntegrityVerified(isVerified);
+      const encryptedBytes = new Uint8Array(await encryptedBlob.arrayBuffer());
+      const decryptedBytes = await sealDecrypt(encryptedBytes, cleanBlobId);
 
       setStatus('reconstructing');
-      const url = URL.createObjectURL(decryptedFile);
+      const decryptedBlob = new Blob([new Uint8Array(decryptedBytes)], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(decryptedBlob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = decryptedFile.name;
+      a.download = `recovered-${cleanBlobId.slice(0, 8)}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
+      setIntegrityVerified(true);
       setStatus('success');
       setTimeout(() => setStatus('idle'), 5000);
     } catch (err: unknown) {
       console.error('Recovery failed:', err);
       setStatus('error');
       const errorMessage = err instanceof Error ? err.message : 'Recovery failed.';
-      if (errorMessage.toLowerCase().includes('decryption') || errorMessage.toLowerCase().includes('key')) {
-        setError('Invalid Decryption Key. The key does not match this sealed blob.');
+      if (errorMessage.toLowerCase().includes('access') || errorMessage.toLowerCase().includes('policy')) {
+        setError('Access denied. You are not authorized to decrypt this blob.');
       } else {
         setError(errorMessage);
       }
@@ -148,71 +149,40 @@ export const RecoveryBlock = () => {
 
           <form onSubmit={handleRecover} className="space-y-4">
             {/* Input Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-mono text-text-muted uppercase tracking-wider">Blob ID</label>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-1 text-[9px] font-mono text-primary hover:text-accent transition-colors"
-                  >
-                    <Upload className="w-3 h-3" /> Import
-                  </button>
-                  <input
-                    type="file"
-                    accept=".walblob"
-                    ref={fileInputRef}
-                    className="hidden"
-                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePackageImport(f); }}
-                  />
-                </div>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                  <input
-                    type="text"
-                    value={blobId}
-                    onChange={(e) => setBlobId(e.target.value)}
-                    placeholder="Enter Blob ID..."
-                    className="w-full bg-background-alt border border-border-subtle rounded-lg py-3 pl-10 pr-4 text-xs font-mono text-white outline-none focus:border-primary/50 transition-all"
-                  />
-                </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-mono text-text-muted uppercase tracking-wider">Blob ID</label>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-1 text-[9px] font-mono text-primary hover:text-accent transition-colors"
+                >
+                  <Upload className="w-3 h-3" /> Import
+                </button>
+                <input
+                  type="file"
+                  accept=".walblob,.json"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePackageImport(f); }}
+                />
               </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-mono text-text-muted uppercase tracking-wider">Decryption Key</label>
-                <div className="relative">
-                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                  <input
-                    type="password"
-                    value={decryptionKey}
-                    onChange={(e) => setDecryptionKey(e.target.value)}
-                    placeholder="Paste 256-bit AES key..."
-                    className="w-full bg-background-alt border border-border-subtle rounded-lg py-3 pl-10 pr-4 text-xs font-mono text-white outline-none focus:border-primary/50 transition-all"
-                  />
-                </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                <input
+                  type="text"
+                  value={blobId}
+                  onChange={(e) => setBlobId(e.target.value)}
+                  placeholder="Enter Blob ID..."
+                  className="w-full bg-background-alt border border-border-subtle rounded-lg py-3 pl-10 pr-4 text-xs font-mono text-white outline-none focus:border-primary/50 transition-all"
+                />
               </div>
             </div>
 
-            {/* Import Status */}
-            {importedMeta && (
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 border border-primary/10 w-fit"
-              >
-                <div className="w-1.5 h-1.5 rounded-full bg-primary status-pulse" />
-                <span className="text-[10px] font-mono text-text-muted">
-                  Ready: <span className="text-white">{importedMeta}</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setImportedMeta(null)}
-                  className="text-text-muted hover:text-secondary transition-colors text-[9px] font-mono ml-2"
-                >
-                  [clear]
-                </button>
-              </motion.div>
+            {!sealConfigured && (
+              <div className="p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/20 text-[10px] font-mono text-yellow-400">
+                Seal not configured. Set VITE_SEAL_PACKAGE_ID and VITE_SEAL_REGISTRY_ID.
+              </div>
             )}
 
             {/* Error */}
@@ -257,7 +227,7 @@ export const RecoveryBlock = () => {
                 >
                   <div className="flex items-center justify-between text-[10px] font-mono text-text-muted">
                     <span>Status: <span className="text-primary uppercase">{status}</span></span>
-                    <span>Zero-Knowledge Mode</span>
+                    <span>Seal Decentralized</span>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -292,7 +262,7 @@ export const RecoveryBlock = () => {
 
             {/* Submit Button */}
             <button
-              disabled={(status !== 'idle' && status !== 'success' && status !== 'error') || !blobId || !decryptionKey}
+              disabled={(status !== 'idle' && status !== 'success' && status !== 'error') || !blobId}
               className="w-full bg-primary text-black py-3 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-accent transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 btn-terminal"
             >
               {status === 'idle' || status === 'error' ? (

@@ -1,0 +1,10 @@
+[package]
+name = "walblob_access"
+version = "1.0.0"
+edition = "2024.beta"
+
+[dependencies]
+sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "mainnet-v1.46.3" }
+
+[addresses]
+walblob_access = "0x0"

@@ -14,7 +14,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import QRCode from 'qrcode';
 import { useWalrus } from '../../hooks/useWalrus';
 import { useWalrusTransaction } from '../../hooks/useWalrusTransaction';
-import { encryptFile } from '../../utils/encryption';
+import { useSeal } from '../../hooks/useSeal';
+import { packFileWithMetadata } from '../../utils/metadata';
 import { historyService } from '../../utils/history';
 import { UploadHistory } from './UploadHistory';
 import { clsx, type ClassValue } from 'clsx';
@@ -184,6 +185,7 @@ export default function Dashboard() {
 
   const { network } = useNetwork();
   const { getFees, executeStoragePayment, isConnected } = useWalrusTransaction();
+  const { encrypt: sealEncrypt } = useSeal();
 
   useEffect(() => {
     if (showQR) {
@@ -220,15 +222,20 @@ export default function Dashboard() {
     updateItem(pending.id, { status: 'encrypting' });
 
     try {
-      const { encryptedBlob, key } = await encryptFile(pending.file, true);
+      const fileHash = await calculateHash(pending.file);
+      const blobId = fileHash;
+
+      const dataToEncrypt = await packFileWithMetadata(pending.file, fileHash);
+      const { encryptedBytes } = await sealEncrypt(blobId, new Uint8Array(dataToEncrypt));
+
       updateItem(pending.id, { status: 'uploading' });
       uploadStartTimeRef.current = Date.now();
-      const encryptedFile = new File([encryptedBlob], pending.file.name, { type: pending.file.type });
+      const encryptedFile = new File([new Uint8Array(encryptedBytes)], pending.file.name, { type: 'application/octet-stream' });
       const epochs = Math.max(1, Math.ceil(retentionDays / 30));
       const result = await publishBlob(encryptedFile, epochs);
 
       if (result) {
-        const finalResult = { ...result, key };
+        const finalResult = { blobId: result.blobId, key: '', url: result.url };
         const duration = (Date.now() - uploadStartTimeRef.current) / 1000;
         updateItem(pending.id, {
           status: 'success',
@@ -253,7 +260,7 @@ export default function Dashboard() {
       const errorMessage = err instanceof Error ? err.message : 'Processing failed';
       updateItem(pending.id, { status: 'error', error: errorMessage });
     }
-  }, [queue, publishBlob, retentionDays, updateItem, stats, network]);
+  }, [queue, publishBlob, retentionDays, updateItem, stats, network, sealEncrypt]);
 
   useEffect(() => {
     const active = queue.some(item => item.status === 'encrypting' || item.status === 'uploading');

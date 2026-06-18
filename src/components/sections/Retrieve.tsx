@@ -1,16 +1,15 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Key, Download, Loader2, ShieldCheck, 
+  Download, Loader2, ShieldCheck, 
   ArrowLeft, Search, Lock, ShieldAlert,
   FileJson, CheckCircle2, ExternalLink, Upload
 } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { Header } from '../ui/Header';
 import { PremiumBackground } from '../animations/PremiumBackground';
-import { decryptFile } from '../../utils/decryptFile';
+import { useSeal } from '../../hooks/useSeal';
 import { twMerge } from 'tailwind-merge';
 import { clsx, type ClassValue } from 'clsx';
-import { parseRecoveryPackage } from '../../utils/RecoveryPackageParser';
 import { Footer } from '../ui/Footer';
 
 function cn(...inputs: ClassValue[]) {
@@ -29,22 +28,18 @@ type RecoveryStatus = 'idle' | 'downloading' | 'verifying' | 'decrypting' | 'rec
 
 export default function Retrieve() {
   const [blobId, setBlobId] = useState(() => new URLSearchParams(window.location.search).get('blob') || '');
-  const [decryptionKey, setDecryptionKey] = useState('');
   const [status, setStatus] = useState<RecoveryStatus>('idle');
   const [error, setError] = useState<React.ReactNode | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [importedMeta, setImportedMeta] = useState<string | null>(null);
   const [integrityVerified, setIntegrityVerified] = useState<boolean | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { decrypt: sealDecrypt, isConfigured: sealConfigured } = useSeal();
 
   const handlePackageImport = async (file: File) => {
     try {
-      const pkg = await parseRecoveryPackage(file);
+      const text = await file.text();
+      const pkg = JSON.parse(text);
       setBlobId(pkg.blobId);
-      setDecryptionKey(pkg.key);
-      if (pkg.metadata?.name) {
-        setImportedMeta(pkg.metadata.name);
-      }
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse recovery package.');
@@ -54,8 +49,12 @@ export default function Retrieve() {
   const handleRetrieve = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanBlobId = blobId.trim();
-    const cleanKey = decryptionKey.trim();
-    if (!cleanBlobId || !cleanKey) return;
+    if (!cleanBlobId) return;
+
+    if (!sealConfigured) {
+      setError('Seal is not configured. Set VITE_SEAL_PACKAGE_ID and VITE_SEAL_REGISTRY_ID.');
+      return;
+    }
 
     setStatus('downloading');
     setError(null);
@@ -104,27 +103,29 @@ export default function Retrieve() {
 
     try {
       setStatus('decrypting');
-      const { file: decryptedFile, integrityVerified: isVerified } = await decryptFile(encryptedBlob, cleanKey, `walblob-${cleanBlobId.slice(0, 8)}`);
-      setIntegrityVerified(isVerified);
+      const encryptedBytes = new Uint8Array(await encryptedBlob.arrayBuffer());
+      const decryptedBytes = await sealDecrypt(encryptedBytes, cleanBlobId);
 
       setStatus('reconstructing');
-      const url = URL.createObjectURL(decryptedFile);
+      const decryptedBlob = new Blob([new Uint8Array(decryptedBytes)], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(decryptedBlob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = decryptedFile.name;
+      a.download = `walblob-${cleanBlobId.slice(0, 8)}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
+      setIntegrityVerified(true);
       setStatus('success');
       setTimeout(() => setStatus('idle'), 5000);
     } catch (err: unknown) {
       console.error(err);
       setStatus('error');
       const errorMessage = err instanceof Error ? err.message : 'Decryption failed.';
-      if (errorMessage.toLowerCase().includes('decryption') || errorMessage.toLowerCase().includes('key')) {
-         setError('Invalid Decryption Key. This key cannot unlock this blob.');
+      if (errorMessage.toLowerCase().includes('access') || errorMessage.toLowerCase().includes('policy')) {
+         setError('Access denied. You are not authorized to decrypt this blob.');
       } else {
          setError(errorMessage);
       }
@@ -176,9 +177,9 @@ export default function Retrieve() {
                      <div className="flex justify-between items-center px-4">
                         <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 text-left">Blob Identifier</label>
                         <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary hover:text-white transition-colors">
-                          <Upload className="w-3.5 h-3.5" /> Select Recovery Package
+                          <Upload className="w-3.5 h-3.5" /> Import Recovery Package
                         </button>
-                        <input type="file" accept=".walblob" ref={fileInputRef} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if(f) handlePackageImport(f); }} />
+                        <input type="file" accept=".walblob,.json" ref={fileInputRef} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if(f) handlePackageImport(f); }} />
                      </div>
                      <div className="relative">
                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
@@ -192,26 +193,10 @@ export default function Retrieve() {
                      </div>
                   </div>
 
-                  <div className="space-y-6">
-                     <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 ml-4 text-left">Decryption Key</label>
-                     <div className="relative">
-                        <Key className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-                        <input 
-                          type="password" 
-                          value={decryptionKey}
-                          onChange={(e) => setDecryptionKey(e.target.value)}
-                          placeholder="Paste your 256-bit AES key..."
-                          className="w-full bg-white/5 border border-white/10 rounded-2xl py-6 pl-16 pr-8 text-sm font-mono text-white/80 outline-none focus:border-primary/40 focus:bg-white/[0.03] transition-all"
-                        />
-                     </div>
-                  </div>
-
-                  {importedMeta && (
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-4 px-6 py-4 rounded-2xl bg-primary/5 border border-primary/10 w-fit mx-auto">
-                      <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(79,124,255,0.5)]" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">Ready to recover: <span className="text-white">{importedMeta}</span></span>
-                      <button type="button" onClick={() => setImportedMeta(null)} className="ml-4 text-white/20 hover:text-white transition-colors uppercase text-[9px] font-bold tracking-widest">Clear</button>
-                    </motion.div>
+                  {!sealConfigured && (
+                    <div className="p-4 rounded-2xl bg-yellow-500/5 border border-yellow-500/20 text-xs text-yellow-400">
+                      Seal is not configured. Set VITE_SEAL_PACKAGE_ID and VITE_SEAL_REGISTRY_ID in .env
+                    </div>
                   )}
 
                   {error && (
@@ -248,7 +233,7 @@ export default function Retrieve() {
                       >
                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em]">
                             <span className="text-white/40">Status: <span className="text-primary">{status}</span></span>
-                            <span className="text-white/10 italic">Zero-Knowledge Secure Tunnel</span>
+                            <span className="text-white/10 italic">Seal Decentralized Encryption</span>
                          </div>
                          
                          <div className="flex items-center justify-between gap-4">
@@ -282,7 +267,7 @@ export default function Retrieve() {
                   </AnimatePresence>
 
                   <button 
-                    disabled={(status !== 'idle' && status !== 'success' && status !== 'error') || !blobId || !decryptionKey}
+                    disabled={(status !== 'idle' && status !== 'success' && status !== 'error') || !blobId}
                     className="w-full bg-white text-black py-7 rounded-full font-bold text-sm uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_20px_50px_rgba(255,255,255,0.15)] disabled:opacity-20 flex items-center justify-center gap-4"
                   >
                     {status === 'idle' || status === 'error' ? (
