@@ -1,30 +1,30 @@
 import { motion } from 'framer-motion';
-import { Lock, Layers, Key, ShieldCheck, Terminal } from 'lucide-react';
+import { Lock, Layers, Key, ShieldCheck, Terminal, KeyRound } from 'lucide-react';
 
 const SECURITY_POINTS = [
   {
-    title: "Client-Side Sealing",
-    desc: "AES-256 GCM encryption in your browser. Raw files and keys never touch our servers.",
+    title: "Seal Threshold Encryption",
+    desc: "5-of-N threshold encryption via Mysten Seal. Keys are split across multiple key servers.",
+    icon: KeyRound,
+    cmd: "./seal --threshold=5 --network=sui-mainnet",
+  },
+  {
+    title: "On-Chain Access Control",
+    desc: "BlobRegistry smart contract on Sui Mainnet controls who can decrypt each blob.",
     icon: Lock,
-    cmd: "./encrypt --mode=aes256gcm",
+    cmd: "./register --contract=blob_registry --mainnet",
   },
   {
-    title: "Decentralized Sharding",
-    desc: "Data fragmented and distributed across the global Walrus network.",
+    title: "Walrus Decentralized Storage",
+    desc: "Encrypted blobs stored as quilts across 97+ storage nodes with erasure coding.",
     icon: Layers,
-    cmd: "./distribute --network=walrus",
+    cmd: "./store --network=walrus --epochs=26",
   },
   {
-    title: "Integrity Verification",
-    desc: "SHA-256 hashes embedded in encrypted metadata to prevent tampering.",
-    icon: ShieldCheck,
-    cmd: "./verify --hash=sha256",
-  },
-  {
-    title: "Zero-Knowledge Recovery",
-    desc: "Only the private key holder can reconstruct the blob. Zero access for us.",
+    title: "Session Key Recovery",
+    desc: "Decrypt with your Sui wallet + on-chain seal_approve. No private keys in browser.",
     icon: Key,
-    cmd: "./recover --zero-knowledge",
+    cmd: "./recover --session-key --seal-approve",
   },
 ];
 
@@ -49,15 +49,15 @@ export const SecurityModelSection = () => {
               </div>
               <div className="pl-4 space-y-2 text-[11px] font-mono text-text-muted">
                 <p><span className="text-primary">#</span> WalBlob Security Architecture</p>
-                <p className="pl-2">Military-grade encryption meets</p>
-                <p className="pl-2">decentralized storage.</p>
+                <p className="pl-2">Mysten Seal + Walrus Network</p>
+                <p className="pl-2">Live on Sui Mainnet.</p>
               </div>
             </div>
           </div>
 
           {/* Feature List */}
           <div className="space-y-2">
-            {['No registration required', 'Military-grade encryption', 'Permanent storage options'].map((text, i) => (
+            {['Seal protocol live on Mainnet', 'Threshold encryption (5-of-N)', 'On-chain BlobRegistry access control'].map((text, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, x: -10 }}
@@ -111,11 +111,11 @@ export const SecurityModelSection = () => {
               <ShieldCheck className="w-4 h-4 text-success shrink-0 mt-0.5" />
               <div>
                 <h5 className="text-[10px] font-mono text-success uppercase tracking-wider mb-1">
-                  Protocol Verified
+                  Seal Protocol Verified
                 </h5>
                 <p className="text-[10px] text-text-muted leading-relaxed">
-                  Full support for SHA-256 integrity checks and metadata-aware retrieval.
-                  Storage provided by the Walrus Network.
+                  Seal contract deployed on Sui Mainnet. BlobRegistry active.
+                  Storage via Walrus Network (97 nodes, 1000 shards).
                 </p>
               </div>
             </div>

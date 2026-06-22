@@ -48,7 +48,7 @@ export const Header = () => {
             {/* Status Indicator */}
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/5 border border-primary/10">
               <div className="w-1.5 h-1.5 rounded-full bg-primary status-pulse" />
-              <span className="text-[10px] font-mono text-primary uppercase">Online</span>
+              <span className="text-[10px] font-mono text-primary uppercase">Seal Active</span>
             </div>
 
             {/* Wallet Connect */}

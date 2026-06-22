@@ -3,12 +3,12 @@ import { Shield, Layers, Lock, Upload, ArrowRight } from 'lucide-react';
 
 const FEATURES = [
   {
-    title: "Zero-Knowledge Security",
-    desc: "AES-256 encryption in your browser. Keys never leave your device memory.",
+    title: "Seal Encryption (Live)",
+    desc: "On-chain access control via Mysten Seal. AES-256 GCM + threshold decryption on Sui Mainnet.",
     icon: Shield,
     color: "text-primary",
-    stat: "256-bit",
-    statLabel: "Encryption",
+    stat: "Mainnet",
+    statLabel: "Seal Protocol",
   },
   {
     title: "Decentralized Storage",
@@ -19,16 +19,16 @@ const FEATURES = [
     statLabel: "Uptime",
   },
   {
-    title: "Client-Side Recovery",
-    desc: "Only the sovereign key holder can reconstruct data. Zero backend access.",
+    title: "Zero-Knowledge Recovery",
+    desc: "On-chain BlobRegistry contract controls access. Only the key holder can decrypt.",
     icon: Lock,
     color: "text-accent",
     stat: "0",
-    statLabel: "Third-Party Access",
+    statLabel: "Trust Required",
   },
   {
-    title: "Batch Upload Support",
-    desc: "High-throughput protocol for uploading multiple encrypted blobs simultaneously.",
+    title: "Supported Tokens",
+    desc: "Encrypt any file type: documents, images, videos, archives. Unlimited file support.",
     icon: Upload,
     color: "text-success",
     stat: "∞",

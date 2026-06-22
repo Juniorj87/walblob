@@ -1,12 +1,12 @@
 import { motion } from 'framer-motion';
-import { FileUp, Lock, CloudUpload, Key, ShieldCheck, ChevronRight } from 'lucide-react';
+import { FileUp, Lock, CloudUpload, ShieldCheck, ChevronRight, KeyRound } from 'lucide-react';
 
 const STEPS = [
   { title: "SELECT", desc: "Choose files to encrypt", icon: FileUp, cmd: "./select" },
-  { title: "ENCRYPT", desc: "AES-256 local sealing", icon: Lock, cmd: "./encrypt --mode=aes256" },
-  { title: "UPLOAD", desc: "Decentralized storage", icon: CloudUpload, cmd: "./upload --network=walrus" },
-  { title: "SAVE", desc: "Store Blob ID + Key", icon: Key, cmd: "./export --format=.walblob" },
-  { title: "RECOVER", desc: "Zero-knowledge retrieval", icon: ShieldCheck, cmd: "./recover --decrypt" },
+  { title: "SEAL", desc: "Seal threshold encryption (5-of-N)", icon: KeyRound, cmd: "./seal --threshold=5" },
+  { title: "UPLOAD", desc: "Encrypted blob to Walrus", icon: CloudUpload, cmd: "./upload --network=walrus" },
+  { title: "REGISTER", desc: "On-chain access control", icon: Lock, cmd: "./register --contract=blob_registry" },
+  { title: "RECOVER", desc: "Session key + seal_approve", icon: ShieldCheck, cmd: "./recover --seal --decrypt" },
 ];
 
 export const ProcessTimeline = () => {
@@ -28,9 +28,9 @@ export const ProcessTimeline = () => {
         {/* Terminal Body */}
         <div className="p-4 md:p-6 space-y-3">
           {/* Welcome Message */}
-          <div className="text-[11px] font-mono text-text-muted mb-4">
-            <span className="text-primary">$</span> Initializing WalBlob Protocol v3.0...
-          </div>
+            <div className="text-[11px] font-mono text-text-muted mb-4">
+              <span className="text-primary">$</span> Initializing WalBlob Protocol v3.0 (Seal Mainnet)...
+            </div>
 
           {/* Steps as Terminal Commands */}
           {STEPS.map((step, i) => (
@@ -72,7 +72,7 @@ export const ProcessTimeline = () => {
           <div className="mt-4 pt-4 border-t border-border-subtle">
             <div className="text-[11px] font-mono text-success flex items-center gap-2">
               <ShieldCheck className="w-4 h-4" />
-              Protocol initialized. Ready for secure operations.
+              Protocol initialized. Seal encryption active on Sui Mainnet.
             </div>
           </div>
         </div>

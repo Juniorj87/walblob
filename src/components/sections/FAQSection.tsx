@@ -4,24 +4,28 @@ import { useState } from 'react';
 
 const FAQS = [
   {
-    q: "Can WalBlob read my files?",
-    a: "Absolutely not. Your files are encrypted directly in your browser using AES-256 GCM. The original content never leaves your device; only opaque encrypted shards are sent to the Walrus network. We possess no decryption capability.",
+    q: "How does Seal encryption work?",
+    a: "WalBlob uses Mysten's Seal protocol for threshold encryption. Your data is encrypted with a 5-of-N threshold scheme — decryption requires cooperation from multiple key servers on Sui. The BlobRegistry contract on Mainnet controls which addresses can decrypt each blob.",
+  },
+  {
+    q: "What tokens are supported for encryption?",
+    a: "Seal encrypts any file type — documents (PDF, DOCX), images (PNG, JPG, SVG), videos (MP4, WebM), archives (ZIP, TAR), and more. The encryption is file-agnostic: Seal works on raw bytes regardless of content type.",
   },
   {
     q: "What happens if I lose my key?",
-    a: "Since WalBlob is a zero-knowledge platform, we do not store your keys. If you lose your decryption key and your Blob ID, your data is permanently lost. We recommend using our portable recovery packages (.walblob) for offline storage.",
+    a: "Since WalBlob is zero-knowledge, we do not store your keys. If you lose your decryption key and Blob ID, your data is permanently unrecoverable. Use our portable recovery packages (.walblob) for offline backup.",
   },
   {
-    q: "Is WalBlob decentralized?",
-    a: "Yes. WalBlob is a decentralized storage interface. Your data is sharded and distributed across the global Walrus network, ensuring censorship resistance and high availability without relying on any centralized server.",
+    q: "Where is my data stored?",
+    a: "Encrypted blobs are stored on the Walrus decentralized network (97+ storage nodes, 1000 shards). The Walrus Sites deployment is also decentralized — no centralized servers. Your data is redundant, censorship-resistant, and verifiable.",
   },
   {
     q: "Can I recover files on another device?",
-    a: "Yes. As long as you have your Blob ID and Decryption Key (or your recovery package), you can use WalBlob or any compatible Walrus utility to reconstruct your original files from any browser on any device.",
+    a: "Yes. Connect your Sui wallet on any device, enter the Blob ID, and the Seal protocol will verify your on-chain identity via the BlobRegistry contract. If approved, decryption happens through the session key mechanism — no seed phrase needed.",
   },
   {
-    q: "Are encryption keys stored anywhere?",
-    a: "No. Encryption keys are generated locally in your browser's RAM and are never transmitted to our servers or stored on any persistent database. You are the sole custodian of your cryptographic security.",
+    q: "What is the Seal contract address?",
+    a: "The access_control module is deployed at 0x51b58964d35455e6c6821f7f6219d085a25e5acb5d4482f10c6d95d7715eb611 on Sui Mainnet. The BlobRegistry shared object is at 0x4fe089ef9e2c984a8ed7ee5418047a2ab17736f61789d935ff71be6e8e8a64d8.",
   },
 ];
 

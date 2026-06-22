@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
-import { Lock, File, Key, ShieldCheck, ArrowDown, Network } from 'lucide-react';
+import { Lock, File, Key, ShieldCheck, ArrowDown, Network, KeyRound } from 'lucide-react';
 
 const STEPS = [
   { icon: File, label: "INPUT", color: "text-text-muted", desc: "Raw file selection" },
-  { icon: Lock, label: "ENCRYPT", color: "text-primary", desc: "AES-256 GCM sealing", highlight: true },
+  { icon: KeyRound, label: "SEAL", color: "text-primary", desc: "Threshold encryption (5-of-N)", highlight: true },
   { icon: Network, label: "DISTRIBUTE", color: "text-accent", desc: "Walrus network shards" },
-  { icon: ShieldCheck, label: "SECURE", color: "text-success", desc: "Distributed storage" },
+  { icon: ShieldCheck, label: "SECURE", color: "text-success", desc: "On-chain access control" },
 ];
 
 export const VisualSecurityModel = () => {
@@ -28,8 +28,8 @@ export const VisualSecurityModel = () => {
             </div>
             <div className="pl-4 space-y-2 text-[11px] font-mono text-text-muted">
               <p><span className="text-primary">#</span> Zero-Knowledge Architecture</p>
-              <p className="pl-2">Encryption happens in your browser.</p>
-              <p className="pl-2">Keys never leave your device.</p>
+              <p className="pl-2">Encryption via Mysten Seal protocol.</p>
+              <p className="pl-2">Threshold decryption on Sui Mainnet.</p>
               <p className="pl-2">No trust required.</p>
             </div>
           </div>
@@ -38,9 +38,9 @@ export const VisualSecurityModel = () => {
         {/* Security Points */}
         <div className="space-y-2">
           {[
-            { t: "Local Browser Sealing", d: "AES-256 GCM encryption in your RAM", icon: Lock },
-            { t: "Deterministic Key Generation", d: "Non-custodial access control", icon: Key },
-            { t: "Decentralized Sharding", d: "Opaque fragments distributed globally", icon: Network },
+            { t: "Seal Threshold Encryption", d: "5-of-N threshold via Mysten Seal on Sui", icon: KeyRound },
+            { t: "On-Chain Access Control", d: "BlobRegistry contract on Sui Mainnet", icon: Lock },
+            { t: "Decentralized Sharding", d: "Encrypted fragments distributed globally", icon: Network },
           ].map((item, i) => (
             <motion.div
               key={i}
@@ -69,10 +69,10 @@ export const VisualSecurityModel = () => {
           <div className="flex items-start gap-3">
             <Key className="w-5 h-5 text-primary shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-bold text-white mb-1">Zero Access Guarantee</p>
+              <p className="text-xs font-bold text-white mb-1">Seal On-Chain Security</p>
               <p className="text-[10px] text-text-muted leading-relaxed">
-                Your encryption key <span className="text-primary font-bold">never leaves your browser.</span>
-                It is mathematically impossible for anyone to access your content.
+                Encryption keys are split via <span className="text-primary font-bold">threshold cryptography (5-of-N)</span>.
+                Decryption requires on-chain approval from the BlobRegistry contract.
               </p>
             </div>
           </div>

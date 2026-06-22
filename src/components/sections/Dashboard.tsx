@@ -384,7 +384,7 @@ export default function Dashboard() {
           >
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/5 border border-primary/10 text-primary text-[10px] font-mono uppercase tracking-wider">
-              <Lock className="w-3 h-3" /> Zero-Knowledge Storage
+              <Lock className="w-3 h-3" /> Seal Protocol • Live on Mainnet
             </div>
 
             {/* Heading */}
@@ -397,8 +397,8 @@ export default function Dashboard() {
 
             {/* Description */}
             <p className="text-text-muted text-sm md:text-base font-medium max-w-lg leading-relaxed">
-              Client-side AES-256 encryption. Decentralized Walrus storage.
-              Your keys never leave your browser. Period.
+              Seal threshold encryption on Sui. Decentralized Walrus storage.
+              On-chain access control. Your keys, your data.
             </p>
 
             {/* CTAs */}
@@ -427,7 +427,7 @@ export default function Dashboard() {
 
         {/* --- FEATURES SECTION --- */}
         <section id="features">
-          <SectionHeader badge="Capabilities">Core Infrastructure</SectionHeader>
+          <SectionHeader badge="Live on Mainnet">Core Infrastructure</SectionHeader>
           <FeatureGrid />
         </section>
 
@@ -648,7 +648,7 @@ export default function Dashboard() {
                           {/* Queue Footer */}
                           <div className="pt-3 border-t border-border-subtle flex justify-between items-center">
                             <div className="text-[9px] font-mono text-text-muted flex items-center gap-2">
-                              <Shield className="w-3 h-3" /> AES-256 GCM
+                              <Shield className="w-3 h-3" /> Seal Threshold Encryption
                             </div>
                             <button
                               onClick={() => setQueue([])}
@@ -669,7 +669,7 @@ export default function Dashboard() {
 
         {/* --- SECURITY MODEL --- */}
         <section id="security">
-          <SectionHeader badge="Security">Zero-Knowledge Architecture</SectionHeader>
+          <SectionHeader badge="Security">Seal + Walrus Architecture</SectionHeader>
           <VisualSecurityModel />
         </section>
 
