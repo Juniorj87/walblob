@@ -8,6 +8,7 @@ const PRODUCT_FEATURES = [
     icon: Package,
     color: "text-primary",
     cmd: "walblob export",
+    target: "retrieve",
   },
   {
     title: "Blob Explorer",
@@ -15,6 +16,7 @@ const PRODUCT_FEATURES = [
     icon: Search,
     color: "text-accent",
     cmd: "walblob inspect",
+    target: "explorer",
   },
   {
     title: "Local Vault",
@@ -22,10 +24,15 @@ const PRODUCT_FEATURES = [
     icon: History,
     color: "text-secondary",
     cmd: "walblob history",
+    target: "history",
   },
 ];
 
 export const ProductFeatureCards = () => {
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {PRODUCT_FEATURES.map((f, i) => (
@@ -72,10 +79,13 @@ export const ProductFeatureCards = () => {
             </p>
 
             {/* Action */}
-            <div className="flex items-center gap-2 text-[10px] font-mono text-primary group-hover:text-accent transition-colors cursor-pointer">
+            <button
+              onClick={() => scrollTo(f.target)}
+              className="flex items-center gap-2 text-[10px] font-mono text-primary group-hover:text-accent transition-colors cursor-pointer"
+            >
               <span>Initialize</span>
               <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-            </div>
+            </button>
           </div>
         </motion.div>
       ))}

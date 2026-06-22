@@ -366,6 +366,10 @@ export default function Dashboard() {
     appSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  const scrollToFeatures = () => {
+    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <div className="relative min-h-screen bg-background text-white font-sans">
       <PremiumBackground />
@@ -409,7 +413,10 @@ export default function Dashboard() {
               >
                 Launch App <ArrowRight className="w-4 h-4" />
               </button>
-              <button className="px-8 py-3 rounded-lg bg-white/5 border border-border-subtle text-white font-bold text-xs uppercase tracking-wider hover:bg-white/10 transition-all">
+              <button
+                onClick={scrollToFeatures}
+                className="px-8 py-3 rounded-lg bg-white/5 border border-border-subtle text-white font-bold text-xs uppercase tracking-wider hover:bg-white/10 transition-all"
+              >
                 Learn More
               </button>
             </div>

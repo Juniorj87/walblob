@@ -1,117 +1,178 @@
-# walblob
+# WalBlob v3.0
 
-**Zero-Knowledge Encrypted Storage on Walrus.**
+**Zero-Knowledge Encrypted Storage powered by Seal + Walrus on Sui Mainnet.**
 
-WalBlob is a premium, open-source encrypted storage frontend powered by the **Walrus** decentralized network. It provides a world-class SaaS interface while maintaining absolute privacy through client-side encryption.
+WalBlob is a production-grade decentralized storage application that combines Mysten's **Seal threshold encryption** with the **Walrus decentralized storage network** on Sui. Your data is encrypted with 5-of-N threshold cryptography, stored across 97+ storage nodes, and access-controlled entirely on-chain.
 
 ---
 
-## ⚡ Overview
+## Architecture
 
-WalBlob ensures your data remains yours. By utilizing client-side encryption, your files are sealed before they ever leave your browser.
-
-- **Client-side Encryption**: Your data is encrypted locally using the Web Crypto API.
-- **AES-256-GCM**: Industry-standard authenticated encryption for maximum security.
-- **Walrus Decentralized Storage**: Leveraging the Sui ecosystem for permanent, robust data storage.
-- **Recovery Workflow**: Seamless retrieval and decryption of blobs using your unique keys.
-
-## ✨ Features
-
-- **AES-GCM Encryption**: Secure authenticated encryption for every blob.
-- **Zero-Knowledge Architecture**: Keys never touch any server or decentralized node.
-- **Walrus Uploads**: Direct integration with Walrus Publisher nodes.
-- **Blob Recovery**: Intuitive interface to retrieve and decrypt stored data.
-- **Metadata Preservation**: Original filenames and types are preserved in secure metadata.
-- **Recovery Packages**: Export `.walblob` files containing everything needed for retrieval.
-- **Batch Uploads**: Queue multiple files for sequential background processing.
-- **Local Vault**: Keep track of your upload history securely in your browser.
-- **QR Recovery**: Quick mobile-to-desktop recovery via secure QR codes.
-- **Premium UI**: Modern SaaS aesthetic with glassmorphism and fluid animations.
-
-## 📸 Screenshots
-
-![Desktop Dashboard](docs/screenshots/desktop.png)
-*Desktop View*
-
-![Tablet View](docs/screenshots/tablet.png)
-*Tablet Responsive Design*
-
-![Mobile View](docs/screenshots/mobile.png)
-*Mobile Optimization*
-
-## 🚀 Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Juniorj87/walblob.git
-   cd walblob
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Setup environment variables:
-   ```bash
-   cp .env.example .env
-   ```
-
-4. Run development server:
-   ```bash
-   npm run dev
-   ```
-
-## 🏗️ Build
-
-To generate a production-ready build:
-
-```bash
-npm run build
+```
+┌─────────────┐    ┌──────────────┐    ┌─────────────────┐
+│   Browser   │───▶│  Seal Encrypt │───▶│  Walrus Store   │
+│  (Client)   │    │  (5-of-N)    │    │  (Decentralized)│
+└─────────────┘    └──────────────┘    └─────────────────┘
+                          │
+                   ┌──────▼──────┐
+                   │ BlobRegistry │
+                   │  (Sui Chain) │
+                   └─────────────┘
 ```
 
-The output will be in the `dist/` directory.
+### Seal Protocol (Live on Mainnet)
+- **Package ID**: `0x51b58964d35455e6c6821f7f6219d085a25e5acb5d4482f10c6d95d7715eb611`
+- **BlobRegistry**: `0x4fe089ef9e2c984a8ed7ee5418047a2ab17736f61789d935ff71be6e8e8a64d8`
+- **Threshold**: 5-of-N key server consensus
+- **Network**: Sui Mainnet
 
-## ⚙️ Environment Variables
+### Walrus Storage
+- **Nodes**: 97+ independent storage nodes
+- **Shards**: 1000 shards with erasure coding
+- **Epochs**: 14 days per epoch (max 53 epochs)
+- **Cost**: $0.023/GB/month
 
-Create a `.env` file in the root directory:
+## Features
+
+| Feature | Description |
+|---|---|
+| **Seal Threshold Encryption** | 5-of-N threshold cryptography via Mysten Seal |
+| **On-Chain Access Control** | BlobRegistry smart contract on Sui Mainnet |
+| **Walrus Decentralized Storage** | 97+ nodes, 1000 shards, erasure coding |
+| **Session Key Recovery** | Decrypt with Sui wallet + seal_approve |
+| **Recovery Packages** | Export `.walblob` files for offline backup |
+| **Blob Explorer** | Inspect blob availability across the network |
+| **Local Vault** | Browser-side upload history |
+| **QR Recovery** | Mobile-to-desktop recovery via QR codes |
+| **Batch Upload** | Queue multiple files for processing |
+| **Premium UI** | Terminal-themed SaaS interface |
+
+## Supported File Types
+
+Seal encrypts any file type at the byte level:
+- **Documents**: PDF, DOCX, TXT, MD, JSON
+- **Images**: PNG, JPG, SVG, GIF, WebP
+- **Videos**: MP4, WebM, MOV
+- **Audio**: MP3, WAV, OGG
+- **Archives**: ZIP, TAR, GZ
+- **Code**: JS, TS, PY, RS, SOL
+- **Data**: CSV, SQL, DB, BIN
+
+## How It Works
+
+### Upload Flow
+```
+1. SELECT  → Choose files to encrypt
+2. SEAL    → Seal threshold encryption (5-of-N)
+3. UPLOAD  → Encrypted blob to Walrus
+4. REGISTER → On-chain access control (BlobRegistry)
+5. RECOVER → Session key + seal_approve
+```
+
+### Recovery Flow
+```
+1. Connect Sui wallet
+2. Enter Blob ID
+3. Seal verifies on-chain identity via BlobRegistry
+4. Session key decrypts the blob
+5. Original file reconstructed in browser
+```
+
+## Installation
+
+```bash
+git clone https://github.com/Juniorj87/walblob.git
+cd walblob
+npm install
+cp .env.example .env
+npm run dev
+```
+
+## Environment Variables
 
 ```env
-# Optional: Override default mainnet URLs
+# Seal Configuration (Mainnet)
+VITE_SEAL_PACKAGE_ID=0x51b58964d35455e6c6821f7f6219d085a25e5acb5d4482f10c6d95d7715eb611
+VITE_SEAL_REGISTRY_ID=0x4fe089ef9e2c984a8ed7ee5418047a2ab17736f61789d935ff71be6e8e8a64d8
+
+# Walrus Network (optional overrides)
 # VITE_WALRUS_MAINNET_PUBLISHER_URL=https://publisher.walrus.space
 # VITE_WALRUS_MAINNET_AGGREGATOR_URL=https://aggregator.walrus.space
 ```
 
-## 🔒 Security Model
+## Security Model
 
-- **Local Keys**: Encryption keys are generated in your browser and are never transmitted.
-- **In-Memory Only**: By default, keys exist only during the session unless exported as a recovery file.
-- **Authenticated Encryption**: AES-GCM ensures that your data cannot be tampered with while stored.
+| Layer | Mechanism |
+|---|---|
+| **Encryption** | Seal threshold cryptography (5-of-N) |
+| **Key Management** | Split across multiple Seal key servers |
+| **Access Control** | On-chain BlobRegistry contract |
+| **Storage** | Walrus erasure-coded decentralized network |
+| **Recovery** | Sui wallet + session key (no seed phrase) |
 
-## 🔄 Recovery Workflow
+## Tech Stack
 
-### Upload Path
-**File** → **Encrypt (Local)** → **Walrus (Upload)** → **Blob ID + Key**
+- **Frontend**: React 19, TypeScript, Vite, Tailwind CSS
+- **Encryption**: Mysten Seal SDK (`@mysten/seal`)
+- **Blockchain**: Sui (`@mysten/sui`, `@mysten/dapp-kit`)
+- **Storage**: Walrus Network
+- **Move Contract**: `walblob_access` (access_control module)
 
-### Retrieval Path
-**Blob ID + Key** → **Recover (Fetch)** → **Decrypt (Local)** → **Download**
+## Contract Source
 
-## 🗺️ Roadmap
+```move
+module walblob_access::access_control;
 
-### v2.2 (Coming Soon)
-- Bundle size optimization (< 150kB)
-- Enhanced metadata indexing
-- Improved recovery package compression
+public struct BlobRegistry has key, store {
+    id: UID,
+}
 
-### v3.0 (Planned)
-- Multi-user profiles
-- Expiring shared recovery links
-- Collaborative Team Vaults
+entry fun seal_approve(id: vector<u8>, registry: &BlobRegistry) {
+    assert!(dynamic_field::exists<vector<u8>>(&registry.id, id), EBlobNotRegistered);
+}
 
-## 📜 License
+public fun register_blob(registry: &mut BlobRegistry, blob_id: vector<u8>, ctx: &TxContext) { ... }
+public fun transfer_blob(registry: &mut BlobRegistry, blob_id: vector<u8>, new_owner: address, ctx: &TxContext) { ... }
+public fun unregister_blob(registry: &mut BlobRegistry, blob_id: vector<u8>, ctx: &TxContext) { ... }
+```
 
-Distributed under the MIT License. See `LICENSE` for more information.
+## Deployment
+
+### Walrus Sites (Mainnet)
+- **Site Object ID**: `0x99068ee1ea5ef40d0e958ff673d7c34712e2081045b1dfd7d14c722534eb8e60`
+- **Storage**: 26 epochs (~6 months)
+- **Portal**: Requires SuiNS name for `wal.app` access
+
+### Deploy Your Own
+```bash
+# Install tools
+suiup install sui
+suiup install walrus
+
+# Deploy contract
+sui client publish move/walblob_access --gas-budget 50000000
+
+# Build and deploy site
+npm run build
+site-builder --context=mainnet deploy dist --epochs 26
+```
+
+## Roadmap
+
+### v3.1
+- [ ] SuiNS domain (`walblob.wal.app`)
+- [ ] Multi-file batch encryption
+- [ ] Shared recovery links with expiry
+
+### v3.2
+- [ ] Team vaults with role-based access
+- [ ] Webhook notifications for blob expiry
+- [ ] Advanced blob analytics dashboard
+
+## License
+
+MIT License. See `LICENSE` for details.
 
 ---
 
-Built with ❤️ for the permanent web.
+Built with Seal + Walrus on Sui Mainnet.

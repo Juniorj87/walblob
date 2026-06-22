@@ -9,6 +9,7 @@ const FEATURES = [
     color: "text-primary",
     stat: "Mainnet",
     statLabel: "Seal Protocol",
+    target: "security",
   },
   {
     title: "Decentralized Storage",
@@ -17,6 +18,7 @@ const FEATURES = [
     color: "text-secondary",
     stat: "100%",
     statLabel: "Uptime",
+    target: "explorer",
   },
   {
     title: "Zero-Knowledge Recovery",
@@ -25,6 +27,7 @@ const FEATURES = [
     color: "text-accent",
     stat: "0",
     statLabel: "Trust Required",
+    target: "retrieve",
   },
   {
     title: "Supported Tokens",
@@ -33,10 +36,15 @@ const FEATURES = [
     color: "text-success",
     stat: "∞",
     statLabel: "File Support",
+    target: "app",
   },
 ];
 
 export const FeatureGrid = () => {
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {FEATURES.map((f, i) => (
@@ -73,12 +81,15 @@ export const FeatureGrid = () => {
           </div>
 
           {/* Footer */}
-          <div className="mt-4 pt-4 border-t border-border-subtle flex items-center justify-between">
+          <button
+            onClick={() => scrollTo(f.target)}
+            className="mt-4 pt-4 border-t border-border-subtle flex items-center justify-between w-full"
+          >
             <div className="text-[10px] font-mono text-text-muted uppercase tracking-wider">
               Learn more
             </div>
             <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-primary group-hover:translate-x-1 transition-all" />
-          </div>
+          </button>
 
           {/* Corner Accent */}
           <div className={cn(
