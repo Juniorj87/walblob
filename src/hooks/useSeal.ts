@@ -4,8 +4,8 @@ import { Transaction } from '@mysten/sui/transactions';
 import { fromHex } from '@mysten/sui/utils';
 import { useCurrentAccount, useSignPersonalMessage, useSuiClient } from '@mysten/dapp-kit';
 
-const SEAL_PACKAGE_ID = import.meta.env.VITE_SEAL_PACKAGE_ID || '';
-const SEAL_REGISTRY_ID = import.meta.env.VITE_SEAL_REGISTRY_ID || '';
+const SEAL_PACKAGE_ID = import.meta.env.VITE_SEAL_PACKAGE_ID || '0x51b58964d35455e6c6821f7f6219d085a25e5acb5d4482f10c6d95d7715eb611';
+const SEAL_REGISTRY_ID = import.meta.env.VITE_SEAL_REGISTRY_ID || '0x4fe089ef9e2c984a8ed7ee5418047a2ab17736f61789d935ff71be6e8e8a64d8';
 const SEAL_API_KEY = import.meta.env.VITE_SEAL_API_KEY || '';
 
 const MODULE_NAME = 'access_control';
