@@ -80,8 +80,9 @@ export const ProductFeatureCards = () => {
 
             {/* Action */}
             <button
+              type="button"
               onClick={() => scrollTo(f.target)}
-              className="flex items-center gap-2 text-[10px] font-mono text-primary group-hover:text-accent transition-colors cursor-pointer"
+              className="flex items-center gap-2 text-[10px] font-mono text-primary group-hover:text-accent transition-colors cursor-pointer relative z-10"
             >
               <span>Initialize</span>
               <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />

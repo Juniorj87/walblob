@@ -54,7 +54,7 @@ export const FeatureGrid = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: i * 0.1, duration: 0.5 }}
-          className="terminal-window rounded-xl p-6 group card-hover"
+          className="terminal-window rounded-xl p-6 group card-hover relative"
         >
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
@@ -82,8 +82,9 @@ export const FeatureGrid = () => {
 
           {/* Footer */}
           <button
+            type="button"
             onClick={() => scrollTo(f.target)}
-            className="mt-4 pt-4 border-t border-border-subtle flex items-center justify-between w-full"
+            className="mt-4 pt-4 border-t border-border-subtle flex items-center justify-between w-full relative z-10"
           >
             <div className="text-[10px] font-mono text-text-muted uppercase tracking-wider">
               Learn more
